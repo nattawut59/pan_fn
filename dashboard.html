@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แดชบอร์ดผู้ป่วย - GTMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #00A8A8;
+            --primary-dark: #007878;
+            --primary-light: #E0F2F1;
+            --secondary: #00CECE;
+            --dark: #324047;
+            --gray: #6B7280;
+            --light-gray: #F3F4F6;
+            --white: #FFFFFF;
+            --error: #EF4444;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --info: #3B82F6;
+            --border: #E5E7EB;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background-color: #F9FAFB;
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        /* Layout */
+        .layout {
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background-color: var(--white);
+            height: 100vh;
+            position: fixed;
+            box-shadow: var(--shadow);
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 20;
+            background: var(--primary);
+            color: var(--white);
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        .logo-container {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background-color: var(--primary-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .logo-subtitle {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .menu {
+            padding: 20px 0;
+            overflow-y: auto;
+            max-height: calc(100vh - 91px);
+        }
+
+        .menu-label {
+            padding: 0 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--gray);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        /* Header */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .notifications-btn {
+            background: var(--white);
+            border: 1px solid var(--border);
+            color: var(--gray);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .notifications-indicator {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            background-color: var(--error);
+            border-radius: 50%;
+            border: 2px solid var(--white);
+            display: none;
+        }
+
+        .user-dropdown {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 6px 8px 6px 6px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: var(--primary-light);
+            border-radius: 50%;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card-action {
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Dashboard Cards */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.primary {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .stat-icon.info {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--info);
+        }
+
+        .stat-icon.warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .stat-icon.error {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        .stat-content {
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .stat-indicator {
+            margin-top: 4px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .stat-indicator.positive {
+            color: var(--success);
+        }
+
+        .stat-indicator.negative {
+            color: var(--error);
+        }
+
+        /* Appointments */
+        .appointment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .appointment-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--white);
+            position: relative;
+        }
+
+        .appointment-item:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .appointment-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            position: absolute;
+            top: 16px;
+            right: 16px;
+        }
+
+        .appointment-status.upcoming {
+            background-color: var(--warning);
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+        }
+
+        .appointment-status.completed {
+            background-color: var(--success);
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+
+        .appointment-status.cancelled {
+            background-color: var(--error);
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+        }
+
+        .appointment-date {
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary-light);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            color: var(--primary);
+        }
+
+        .appointment-day {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .appointment-month {
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .appointment-info {
+            flex: 1;
+        }
+
+        .appointment-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .appointment-details {
+            font-size: 14px;
+            color: var(--gray);
+            display: flex;
+            gap: 16px;
+        }
+
+        .appointment-detail {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .appointment-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .appointment-action {
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .appointment-action.primary {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .appointment-action.primary:hover {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .appointment-action.outline {
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--gray);
+        }
+
+        .appointment-action.outline:hover {
+            background-color: var(--light-gray);
+        }
+
+        /* Treatment Plan */
+        .treatment-list {
+            list-style: none;
+        }
+
+        .treatment-item {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+        }
+
+        .treatment-item:last-child {
+            border-bottom: none;
+        }
+
+        .treatment-check {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: var(--white);
+            font-weight: bold;
+        }
+
+        .treatment-check.active {
+            background-color: var(--primary);
+        }
+
+        .treatment-info {
+            flex: 1;
+        }
+
+        .treatment-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .treatment-description {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .treatment-time {
+            font-size: 14px;
+            color: var(--primary);
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
+        /* IOP Chart */
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            position: relative;
+        }
+
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 168, 168, 0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .chart-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* Medication */
+        .medication-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .medication-card {
+            background: var(--white);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .medication-header {
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            background-color: var(--primary-light);
+        }
+
+        .medication-icon {
+            width: 40px;
+            height: 40px;
+            background-color: var(--white);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 12px;
+            color: var(--primary);
+        }
+
+        .medication-name {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .medication-content {
+            padding: 12px;
+        }
+
+        .medication-time {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .medication-period {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .medication-frequency {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .medication-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .pill {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .pill.primary {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .pill.info {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--info);
+        }
+
+        /* Alert Styles */
+        .alert-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .alert-item {
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-item.warning {
+            background-color: rgba(245, 158, 11, 0.05);
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+
+        .alert-item.danger {
+            background-color: rgba(239, 68, 68, 0.05);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-item.info {
+            background-color: rgba(59, 130, 246, 0.05);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .alert-item.warning .alert-icon {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .alert-item.danger .alert-icon {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        .alert-item.info .alert-icon {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--info);
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .alert-message {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .alert-time {
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        .alert-action {
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .alert-item.warning .alert-action {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .alert-item.danger .alert-action {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        .alert-item.info .alert-action {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--info);
+        }
+
+        .alert-item .alert-action:hover {
+            filter: brightness(0.9);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+
+        /* API Error */
+        .api-error {
+            background-color: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            display: none;
+        }
+
+        .api-error-icon {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(239, 68, 68, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--error);
+            flex-shrink: 0;
+        }
+
+        .api-error-content {
+            flex: 1;
+        }
+
+        .api-error-title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .api-error-message {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .api-error-retry {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background-color: var(--error);
+            color: var(--white);
+            transition: all 0.3s ease;
+        }
+
+        .api-error-retry:hover {
+            background-color: #dc2626;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding-top: 60px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .appointment-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .appointment-date {
+                margin-bottom: 12px;
+            }
+
+            .appointment-details {
+                flex-direction: column;
+                gap: 4px;
+                margin-bottom: 12px;
+            }
+
+            .appointment-actions {
+                width: 100%;
+            }
+
+            .appointment-action {
+                flex: 1;
+                text-align: center;
+            }
+
+            .alert-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* User Menu Dropdown */
+        .user-menu {
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+            width: 200px;
+            z-index: 100;
+            display: none;
+        }
+
+        .user-menu.show {
+            display: block;
+        }
+
+        .user-menu-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-menu-item:hover {
+            background-color: var(--light-gray);
+        }
+
+        .user-menu-logout {
+            color: var(--error);
+        }
+    </style>
+</head>
+<body>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+    
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo-container">
+                <div class="logo">G</div>
+                <div class="logo-text">
+                    <div class="logo-title">GTMS</div>
+                    <div class="logo-subtitle">ระบบติดตามการรักษาโรคต้อหิน</div>
+                </div>
+            </div>
+            
+            <nav class="menu">
+                <p class="menu-label">หน้าหลัก</p>
+                <a href="#" class="menu-item active">
+                    <div class="menu-icon">📊</div>
+                    แดชบอร์ด
+                </a>
+                <a href="appointments.html" class="menu-item">
+                    <div class="menu-icon">📅</div>
+                    การนัดหมาย
+                </a>
+                
+                <p class="menu-label">การติดตามการรักษา</p>
+                <a href="iop-tracking.html" class="menu-item">
+                    <div class="menu-icon">👁️</div>
+                    ค่าความดันลูกตา
+                </a>
+                <a href="medications.html" class="menu-item">
+                    <div class="menu-icon">💊</div>
+                    ยาและการรักษา
+                </a>
+                <a href="eye-tests.html" class="menu-item">
+                    <div class="menu-icon">📝</div>
+                    ผลการตรวจวัด
+                </a>
+                
+                <p class="menu-label">อื่นๆ</p>
+                <a href="profile.html" class="menu-item">
+                    <div class="menu-icon">👤</div>
+                    ข้อมูลส่วนตัว
+                </a>
+                <a href="notifications.html" class="menu-item">
+                    <div class="menu-icon">🔔</div>
+                    การแจ้งเตือน
+                </a>
+                <a href="documents.html" class="menu-item">
+                    <div class="menu-icon">📄</div>
+                    เอกสารทางการแพทย์
+                </a>
+                <a href="settings.html" class="menu-item">
+                    <div class="menu-icon">⚙️</div>
+                    ตั้งค่า
+                </a>
+                <a href="#" class="menu-item" onclick="logout()">
+                    <div class="menu-icon">🚪</div>
+                    ออกจากระบบ
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- API Error Display -->
+            <div class="api-error" id="apiError">
+                <div class="api-error-icon">⚠️</div>
+                <div class="api-error-content">
+                    <div class="api-error-title">ไม่สามารถโหลดข้อมูลได้</div>
+                    <div class="api-error-message" id="apiErrorMessage">กรุณาลองใหม่อีกครั้ง</div>
+                </div>
+                <button class="api-error-retry" onclick="loadDashboard()">ลองใหม่</button>
+            </div>
+
+            <div class="content-header">
+                <h1 class="page-title">แดชบอร์ด</h1>
+                
+                <div class="user-info">
+                    <button class="notifications-btn" onclick="location.href='notifications.html'">
+                        🔔
+                        <span class="notifications-indicator" id="notificationsIndicator"></span>
+                    </button>
+                    
+                    <div class="user-dropdown" onclick="toggleUserMenu()">
+                        <div class="user-avatar" id="userAvatar">-</div>
+                        <span class="user-name" id="userName">กำลังโหลด...</span>
+                        <span>▼</span>
+                    </div>
+
+                    <!-- User Menu Dropdown -->
+                    <div class="user-menu" id="userMenu">
+                        <a href="profile.html" class="user-menu-item">
+                            <div class="menu-icon">👤</div>
+                            โปรไฟล์
+                        </a>
+                        <a href="settings.html" class="user-menu-item">
+                            <div class="menu-icon">⚙️</div>
+                            ตั้งค่า
+                        </a>
+                        <a href="#" class="user-menu-item user-menu-logout" onclick="logout()">
+                            <div class="menu-icon">🚪</div>
+                            ออกจากระบบ
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stat-grid" id="statsContainer">
+                <div class="stat-card">
+                    <div class="stat-icon primary">👁️</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="latestIOP">-</div>
+                        <div class="stat-label">ความดันลูกตาล่าสุด (mmHg)</div>
+                        <div class="stat-indicator" id="iopTrend"></div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon info">💊</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="medicationAdherence">-</div>
+                        <div class="stat-label">การใช้ยาตรงเวลา</div>
+                        <div class="stat-indicator" id="adherenceTrend"></div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon warning">📅</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="daysToNextAppointment">-</div>
+                        <div class="stat-label">วันถึงการนัดหมายครั้งถัดไป</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon error">⚠️</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="unreadAlerts">-</div>
+                        <div class="stat-label">การแจ้งเตือนที่ยังไม่ได้อ่าน</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Dashboard Content -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">ค่าความดันลูกตา (IOP)</h2>
+                    <a href="iop-tracking.html" class="card-action">ดูข้อมูลเพิ่มเติม</a>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" id="iopChartContainer">
+                        <div class="loading-spinner" id="iopChartLoading"></div>
+                        <canvas id="iopChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">การนัดหมายที่จะถึง</h2>
+                    <a href="appointments.html" class="card-action">ดูทั้งหมด</a>
+                </div>
+                <div class="card-body">
+                    <div class="appointment-list" id="appointmentsList">
+                        <!-- Appointments will be loaded here -->
+                        <div class="empty-state" id="appointmentsEmpty" style="display: none;">
+                            <div class="empty-state-icon">📅</div>
+                            <div class="empty-state-text">ไม่มีการนัดหมายที่จะถึง</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two Column Layout for Medications and Alerts -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">ยาที่ใช้ในปัจจุบัน</h2>
+                        <a href="medications.html" class="card-action">ดูทั้งหมด</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="medication-grid" id="medicationGrid">
+                            <!-- Medications will be loaded here -->
+                            <div class="empty-state" id="medicationsEmpty" style="display: none;">
+                                <div class="empty-state-icon">💊</div>
+                                <div class="empty-state-text">ไม่มีข้อมูลยา</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">การแจ้งเตือน</h2>
+                        <a href="notifications.html" class="card-action">ดูทั้งหมด</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert-list" id="alertsList">
+                            <!-- Alerts will be loaded here -->
+                            <div class="empty-state" id="alertsEmpty" style="display: none;">
+                                <div class="empty-state-icon">🔔</div>
+                                <div class="empty-state-text">ไม่มีการแจ้งเตือน</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+   <script>
+    // Configuration
+    const API_BASE_URL = 'http://localhost:5001/api'; // <<--- ตรวจสอบและแก้ไขให้ตรงกับ Backend ของคุณ
+    let patientData = null; // เปลี่ยนชื่อเป็น patientData เพื่อเก็บข้อมูลผู้ใช้ทั้งหมด
+
+    // Toggle sidebar for mobile
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Toggle user menu
+    function toggleUserMenu() {
+        document.getElementById('userMenu').classList.toggle('show');
+    }
+
+    // Close user menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const userDropdown = document.querySelector('.user-dropdown');
+        const userMenu = document.getElementById('userMenu');
+        
+        if (userDropdown && !userDropdown.contains(event.target) && userMenu && userMenu.classList.contains('show')) {
+            userMenu.classList.remove('show');
+        }
+    });
+
+    // Check if user is logged in and token is valid
+    function getAuthToken() {
+        const token = localStorage.getItem('gtms_token');
+        if (!token) {
+            console.warn('No token found, redirecting to login.');
+            window.location.href = 'index.html'; // หรือ login.html ตามชื่อไฟล์ของคุณ
+            return null;
+        }
+        return token;
+    }
+
+    // Logout function
+    async function logout() {
+        const token = getAuthToken();
+        // ไม่จำเป็นต้อง check token อีกเพราะ getAuthToken() จะ redirect ถ้าไม่มี
+        
+        try {
+            if (token) { // ตรวจสอบอีกครั้งเผื่อกรณี race condition (ไม่น่าเกิดแต่ปลอดภัยไว้ก่อน)
+                await fetch(`${API_BASE_URL}/auth/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Logout API error:', error);
+        } finally {
+            // Clear all stored data regardless of API call success
+            localStorage.removeItem('gtms_token');
+            localStorage.removeItem('gtms_user');
+            localStorage.removeItem('gtms_refresh_token');
+            localStorage.removeItem('gtms_session_id');
+            localStorage.removeItem('gtms_token_expires');
+            localStorage.removeItem('gtms_current_role');
+            window.location.href = 'index.html'; // หรือ login.html
+        }
+    }
+
+    // Load user profile from localStorage or fetch if needed
+    async function loadUserProfile() {
+        const token = getAuthToken();
+        if (!token) return;
+
+        const storedUser = localStorage.getItem('gtms_user');
+        if (storedUser) {
+            try {
+                patientData = JSON.parse(storedUser);
+                if (patientData && patientData.id) { // ตรวจสอบว่ามี user_id หรือ id
+                    console.log('User data loaded from localStorage:', patientData);
+                    updateUserInfoUI(patientData);
+                    await loadDashboardData(); // โหลดข้อมูล Dashboard เมื่อได้ข้อมูลผู้ใช้
+                    return;
+                }
+            } catch (e) {
+                console.error('Error parsing stored user data:', e);
+            }
+        }
+
+        // If not in localStorage or invalid, fetch from /auth/me
+        console.log('Fetching user profile from API...');
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (!response.ok) {
+                if (response.status === 401) { // Token อาจหมดอายุหรือไม่ถูกต้อง
+                    await logout(); // ทำการ logout และ redirect
+                }
+                throw new Error(`Failed to load user profile: ${response.statusText}`);
+            }
+            
+            const apiUserData = await response.json();
+            if (apiUserData && apiUserData.user) {
+                patientData = apiUserData.user; // Backend /auth/me ส่งข้อมูลผู้ใช้ใน key "user"
+                localStorage.setItem('gtms_user', JSON.stringify(patientData)); // บันทึกข้อมูลล่าสุด
+                console.log('User data fetched from API:', patientData);
+                updateUserInfoUI(patientData);
+                await loadDashboardData();
+            } else {
+                throw new Error('User data not found in API response');
+            }
+            
+        } catch (error) {
+            console.error('Error loading user profile from API:', error);
+            showApiError('ไม่สามารถโหลดข้อมูลผู้ใช้ได้', loadUserProfile); // เพิ่ม retry function
+        }
+    }
+
+    function updateUserInfoUI(user) {
+        const userNameEl = document.getElementById('userName');
+        const userAvatarEl = document.getElementById('userAvatar');
+        
+        if (user && userNameEl && userAvatarEl) {
+            const displayName = (user.firstName && user.lastName) 
+                                ? `${user.firstName} ${user.lastName}` 
+                                : user.username || 'ผู้ใช้';
+            userNameEl.textContent = displayName;
+            userAvatarEl.textContent = displayName.charAt(0).toUpperCase();
+        }
+    }
+
+
+    function showApiError(message, retryFunction = null) {
+        const apiErrorDiv = document.getElementById('apiError');
+        const apiErrorMessageEl = document.getElementById('apiErrorMessage');
+        const retryButton = apiErrorDiv.querySelector('.api-error-retry');
+        
+        if (apiErrorMessageEl) apiErrorMessageEl.textContent = message;
+        if (apiErrorDiv) apiErrorDiv.style.display = 'flex';
+
+        if (retryFunction && retryButton) {
+            retryButton.onclick = retryFunction;
+            retryButton.style.display = 'inline-block';
+        } else if (retryButton) {
+            retryButton.style.display = 'none';
+        }
+    }
+
+    function hideApiError() {
+        const apiErrorDiv = document.getElementById('apiError');
+        if (apiErrorDiv) apiErrorDiv.style.display = 'none';
+    }
+
+    function formatThaiDate(dateString, options = { day: 'numeric', month: 'short', year: 'numeric' }) {
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('th-TH', options);
+        } catch (e) {
+            return dateString; // Return original if formatting fails
+        }
+    }
+    
+    function getThaiMonthShort(date) { // รับ Date object
+        const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+        return thaiMonths[date.getMonth()];
+    }
+
+    function daysUntil(dateString) {
+        if (!dateString) return '-';
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const targetDate = new Date(dateString);
+        targetDate.setHours(0, 0, 0, 0);
+        const diffTime = targetDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (isNaN(diffDays)) return '-';
+        if (diffDays < 0) return 'ผ่านไปแล้ว';
+        if (diffDays === 0) return 'วันนี้';
+        return `${diffDays} วัน`;
+    }
+
+
+    // Load dashboard data - เรียกใช้หลังจากได้ patientData.id (user_id)
+    async function loadDashboardData() {
+        hideApiError();
+        
+        if (!patientData || !patientData.id) {
+            console.error('Patient ID not available for loading dashboard data.');
+            showApiError('ไม่พบข้อมูลผู้ใช้สำหรับโหลดแดชบอร์ด', loadUserProfile);
+            return;
+        }
+        
+        const token = getAuthToken();
+        if (!token) return;
+        
+        console.log(`Fetching dashboard data for patient ID: ${patientData.id}`);
+
+        // แสดง loading spinner สำหรับแต่ละส่วน
+        document.getElementById('iopChartLoading').style.display = 'block';
+        // (เพิ่ม spinner อื่นๆ ถ้าต้องการ)
+
+        Promise.all([
+            loadDashboardSummary(token, patientData.id), // Endpoint สรุปข้อมูลจาก Backend
+            loadIOPChart(token, patientData.id),
+            loadAppointments(token, patientData.id),
+            loadMedications(token, patientData.id),
+            loadNotifications(token, patientData.id) // เปลี่ยนจาก loadAlerts เป็น loadNotifications
+        ]).catch(error => {
+            console.error('Error loading dashboard components:', error);
+            showApiError('ไม่สามารถโหลดข้อมูลแดชบอร์ดบางส่วนได้', loadDashboardData);
+        }).finally(() => {
+            // ซ่อน spinner หลักๆ ที่นี่ (ถ้ามี)
+             document.getElementById('iopChartLoading').style.display = 'none';
+        });
+    }
+
+    // Load Dashboard Summary (Stat Cards)
+    async function loadDashboardSummary(token, patientId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/patient/dashboard`, { // Endpoint ตาม Backend
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error(`Failed to load dashboard summary: ${response.statusText}`);
+            const summary = await response.json();
+
+            // Latest IOP (สมมติว่า summary.recent_iop เป็น array และตัวแรกคือล่าสุด)
+            if (summary.recent_iop && summary.recent_iop.length > 0) {
+                const latest = summary.recent_iop[0];
+                const iopValue = Math.max(latest.left_eye_iop || 0, latest.right_eye_iop || 0) || '-';
+                document.getElementById('latestIOP').textContent = iopValue;
+                // IOP Trend (อาจจะต้องคำนวณจาก summary.recent_iop หรือมีข้อมูล trend มาเลย)
+                // ตัวอย่าง: ถ้ามีข้อมูลก่อนหน้า
+                if (summary.recent_iop.length > 1) {
+                    const prev = summary.recent_iop[1];
+                    const prevIopValue = Math.max(prev.left_eye_iop || 0, prev.right_eye_iop || 0);
+                    const diff = iopValue - prevIopValue;
+                    const trendEl = document.getElementById('iopTrend');
+                    if (diff < 0) { trendEl.textContent = `▼ ${Math.abs(diff).toFixed(1)} mmHg`; trendEl.className = 'stat-indicator positive'; }
+                    else if (diff > 0) { trendEl.textContent = `▲ ${diff.toFixed(1)} mmHg`; trendEl.className = 'stat-indicator negative'; }
+                    else { trendEl.textContent = 'คงที่'; trendEl.className = 'stat-indicator'; }
+                } else {
+                     document.getElementById('iopTrend').textContent = '-';
+                }
+            } else {
+                document.getElementById('latestIOP').textContent = '-';
+                document.getElementById('iopTrend').textContent = '-';
+            }
+
+            // Medication Adherence (สมมติ Backend ส่ง /patient/medication-adherence มาให้)
+            // เราจะเรียกแยกใน loadMedicationAdherence() หรือรวมข้อมูลมาใน /patient/dashboard ก็ได้
+            // ในตัวอย่างนี้ จะใช้ค่าจาก /patient/dashboard ถ้ามี
+            if (summary.medication_adherence) { // สมมติว่า Backend ส่ง object นี้มาใน /patient/dashboard
+                 const adherenceRate = summary.medication_adherence.adherence_rate;
+                 document.getElementById('medicationAdherence').textContent = adherenceRate !== undefined ? `${Math.round(adherenceRate)}%` : '-';
+                 // Adherence Trend (ถ้ามี)
+            } else {
+                // ถ้าไม่มีใน summary อาจจะต้องเรียก API แยก
+                loadMedicationAdherenceSeparate(token, patientId);
+            }
+
+
+            // Days to Next Appointment
+            if (summary.upcoming_appointments && summary.upcoming_appointments.length > 0) {
+                const nextAppt = summary.upcoming_appointments[0]; // สมมติเรียงจากใกล้สุด
+                document.getElementById('daysToNextAppointment').textContent = daysUntil(nextAppt.appointment_date);
+            } else {
+                document.getElementById('daysToNextAppointment').textContent = '-';
+            }
+
+            // Unread Alerts/Notifications
+            document.getElementById('unreadAlerts').textContent = summary.unread_notifications || '0';
+            if (summary.unread_notifications > 0) {
+                document.getElementById('notificationsIndicator').style.display = 'block';
+            } else {
+                document.getElementById('notificationsIndicator').style.display = 'none';
+            }
+
+        } catch (error) {
+            console.error('Error loading dashboard summary:', error);
+            // ตั้งค่า default stat cards เมื่อ error
+            document.getElementById('latestIOP').textContent = 'N/A';
+            document.getElementById('medicationAdherence').textContent = 'N/A';
+            document.getElementById('daysToNextAppointment').textContent = 'N/A';
+            document.getElementById('unreadAlerts').textContent = 'N/A';
+        }
+    }
+    
+    // แยกฟังก์ชัน loadMedicationAdherence ถ้าไม่ได้รวมใน /patient/dashboard
+    async function loadMedicationAdherenceSeparate(token, patientId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/patient/medication-adherence?period=30`, { // เรียก API ตาม Backend
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Failed to load medication adherence');
+            const adherenceData = await response.json(); // Backend ส่ง { adherence: [{...}] }
+            
+            if (adherenceData.adherence && adherenceData.adherence.length > 0) {
+                // สมมติว่าเราต้องการ adherence โดยรวม ไม่ใช่แยกตามยา
+                // หรือถ้าแยกตามยา ก็ต้องคำนวณค่าเฉลี่ย หรือแสดงยาหลัก
+                // ตัวอย่างง่ายๆ: เอาค่าเฉลี่ยของ adherence_rate
+                let totalRate = 0;
+                let count = 0;
+                adherenceData.adherence.forEach(med => {
+                    if (med.adherence_rate !== null) {
+                        totalRate += med.adherence_rate;
+                        count++;
+                    }
+                });
+                const avgAdherence = count > 0 ? totalRate / count : 0;
+                document.getElementById('medicationAdherence').textContent = `${Math.round(avgAdherence)}%`;
+            } else {
+                document.getElementById('medicationAdherence').textContent = '-';
+            }
+        } catch (error) {
+            console.error('Error loading medication adherence separately:', error);
+            document.getElementById('medicationAdherence').textContent = 'N/A';
+        }
+    }
+
+
+    // Load IOP Chart
+    async function loadIOPChart(token, patientId) {
+        const chartContainer = document.getElementById('iopChartContainer');
+        const chartLoading = document.getElementById('iopChartLoading');
+        let iopChartInstance = Chart.getChart("iopChart"); // Get existing chart instance
+        if (iopChartInstance) {
+            iopChartInstance.destroy(); // Destroy to re-create
+        }
+        
+        try {
+            chartLoading.style.display = 'block';
+            chartContainer.querySelector('canvas').style.display = 'none'; // ซ่อน canvas ตอนโหลด
+            
+            // ใช้ endpoint /api/patient/iop-analytics ที่น่าจะให้ข้อมูลที่เหมาะกับกราฟ
+            const response = await fetch(`${API_BASE_URL}/patient/iop-analytics?period=90`, { // ดึงข้อมูล 90 วัน
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error(`Failed to load IOP data: ${response.statusText}`);
+            const analyticsData = await response.json();
+            
+            chartLoading.style.display = 'none';
+            
+            if (!analyticsData || !analyticsData.daily_data || analyticsData.daily_data.length === 0) {
+                chartContainer.innerHTML = '<div class="chart-placeholder">ไม่มีข้อมูลความดันลูกตาสำหรับแสดงกราฟ</div>';
+                return;
+            }
+            
+            chartContainer.querySelector('canvas').style.display = 'block'; // แสดง canvas
+
+            const dailyData = analyticsData.daily_data;
+            const chartLabels = dailyData.map(item => formatThaiDate(item.measurement_date));
+            const leftEyeData = dailyData.map(item => item.avg_left_iop);
+            const rightEyeData = dailyData.map(item => item.avg_right_iop);
+            
+            const ctx = document.getElementById('iopChart').getContext('2d');
+            new Chart(ctx, { // สร้าง chart instance ใหม่
+                type: 'line',
+                data: {
+                    labels: chartLabels,
+                    datasets: [
+                        { label: 'ตาซ้าย (เฉลี่ย)', data: leftEyeData, borderColor: '#3B82F6', backgroundColor: 'rgba(59, 130, 246, 0.1)', tension: 0.1, pointRadius: 3 },
+                        { label: 'ตาขวา (เฉลี่ย)', data: rightEyeData, borderColor: '#F59E0B', backgroundColor: 'rgba(245, 158, 11, 0.1)', tension: 0.1, pointRadius: 3 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false }}, scales: { y: { beginAtZero: true, title: { display: true, text: 'ความดันลูกตา (mmHg)' }}}}
+            });
+            
+        } catch (error) {
+            console.error('Error loading IOP chart:', error);
+            chartLoading.style.display = 'none';
+            chartContainer.innerHTML = '<div class="chart-placeholder">ไม่สามารถโหลดกราฟความดันลูกตาได้</div>';
+        }
+    }
+
+    // Load Appointments
+    async function loadAppointments(token, patientId) {
+        const appointmentsListEl = document.getElementById('appointmentsList');
+        const appointmentsEmptyEl = document.getElementById('appointmentsEmpty');
+        try {
+            // ดึงเฉพาะนัดหมายที่จะถึง (upcoming=true) และ status=scheduled
+            const response = await fetch(`${API_BASE_URL}/patient/appointments?upcoming=true&status=scheduled`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error(`Failed to load appointments: ${response.statusText}`);
+            const data = await response.json();
+            const appointments = data.appointments; // Backend ส่งมาใน key 'appointments'
+            
+            appointmentsListEl.innerHTML = ''; 
+            
+            if (!appointments || appointments.length === 0) {
+                if(appointmentsEmptyEl) appointmentsEmptyEl.style.display = 'block';
+                // daysToNextAppointment จะถูก update โดย loadDashboardSummary
+                return;
+            }
+            
+            if(appointmentsEmptyEl) appointmentsEmptyEl.style.display = 'none';
+            
+            // Backend ควรเรียงมาให้แล้ว (ORDER BY appointment_date, appointment_time)
+            const upcomingAppointments = appointments.slice(0, 3); // แสดงผลสูงสุด 3 รายการ
+            
+            upcomingAppointments.forEach(appointment => {
+                const appointmentDate = new Date(appointment.appointment_date);
+                const day = appointmentDate.getDate();
+                const month = getThaiMonthShort(appointmentDate); // ใช้ฟังก์ชันใหม่
+                
+                const timeString = appointment.appointment_time || 'N/A';
+                const [hours, minutes] = timeString.split(':');
+                const formattedTime = (hours && minutes) ? `${hours}:${minutes} น.` : 'N/A';
+                
+                const doctorName = (appointment.doctor_first_name && appointment.doctor_last_name) 
+                                   ? `${appointment.doctor_first_name} ${appointment.doctor_last_name}` 
+                                   : 'ไม่ระบุแพทย์';
+                const location = appointment.appointment_location || 'ไม่ระบุสถานที่';
+                
+                const item = document.createElement('div');
+                item.className = 'appointment-item';
+                item.innerHTML = `
+                    <span class="appointment-status upcoming"></span>
+                    <div class="appointment-date"><div class="appointment-day">${day}</div><div class="appointment-month">${month}</div></div>
+                    <div class="appointment-info">
+                        <h3 class="appointment-title">${appointment.appointment_type || 'นัดหมายตรวจ'}</h3>
+                        <div class="appointment-details">
+                            <div class="appointment-detail"><span>⏰</span> ${formattedTime}</div>
+                            <div class="appointment-detail"><span>👨‍⚕️</span> ${doctorName}</div>
+                            <div class="appointment-detail"><span>🏥</span> ${location}</div>
+                        </div>
+                    </div>
+                    <div class="appointment-actions">
+                        <button class="appointment-action primary" onclick="viewAppointmentDetails('${appointment.appointment_id}')">รายละเอียด</button>
+                    </div>`;
+                appointmentsListEl.appendChild(item);
+            });
+            
+        } catch (error) {
+            console.error('Error loading appointments:', error);
+            if(appointmentsEmptyEl) appointmentsEmptyEl.style.display = 'block';
+        }
+    }
+
+    // Load Medications
+    async function loadMedications(token, patientId) {
+        const medicationGridEl = document.getElementById('medicationGrid');
+        const medicationsEmptyEl = document.getElementById('medicationsEmpty');
+        try {
+            // Endpoint นี้ดึงยาปัจจุบันจาก PatientMedications (status=active)
+            const response = await fetch(`${API_BASE_URL}/patient/medications`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error(`Failed to load medications: ${response.statusText}`);
+            const data = await response.json();
+            const medications = data.medications; // Backend ส่งมาใน key 'medications'
+            
+            medicationGridEl.innerHTML = '';
+            
+            if (!medications || medications.length === 0) {
+                if(medicationsEmptyEl) medicationsEmptyEl.style.display = 'block';
+                return;
+            }
+            
+            if(medicationsEmptyEl) medicationsEmptyEl.style.display = 'none';
+            
+            const activeMedications = medications.slice(0, 4); // แสดงผลสูงสุด 4 รายการ
+            
+            activeMedications.forEach(med => {
+                const eyeText = med.eye === 'both' ? 'ทั้งสองข้าง' : med.eye === 'left' ? 'ตาซ้าย' : med.eye === 'right' ? 'ตาขวา' : 'ไม่ระบุ';
+                
+                const card = document.createElement('div');
+                card.className = 'medication-card';
+                card.innerHTML = `
+                    <div class="medication-header">
+                        <div class="medication-icon">💧</div>
+                        <div class="medication-name">${med.name || 'ชื่อยาไม่ระบุ'}</div>
+                    </div>
+                    <div class="medication-content">
+                        <div class="medication-time">
+                            <span class="medication-period">${med.dosage || 'ไม่ระบุขนาด'}</span>
+                            <span class="medication-frequency">${med.frequency || 'ตามแพทย์สั่ง'}</span>
+                        </div>
+                        <div class="medication-pills">
+                            <span class="pill primary">${eyeText}</span>
+                            ${med.strength ? `<span class="pill info">${med.strength}</span>` : ''}
+                        </div>
+                    </div>`;
+                medicationGridEl.appendChild(card);
+            });
+            
+        } catch (error) {
+            console.error('Error loading medications:', error);
+            if(medicationsEmptyEl) medicationsEmptyEl.style.display = 'block';
+        }
+    }
+
+    // Load Notifications (previously Alerts)
+    async function loadNotifications(token, patientId) { // เปลี่ยนชื่อฟังก์ชันและ Endpoint
+        const alertsListEl = document.getElementById('alertsList');
+        const alertsEmptyEl = document.getElementById('alertsEmpty');
+        try {
+            const response = await fetch(`${API_BASE_URL}/patient/notifications?limit=3&unread_only=false`, { // Endpoint ตาม Backend
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error(`Failed to load notifications: ${response.statusText}`);
+            const data = await response.json();
+            const notifications = data.notifications; // Backend ส่งมาใน key 'notifications'
+            
+            alertsListEl.innerHTML = '';
+            
+            if (!notifications || notifications.length === 0) {
+                if(alertsEmptyEl) alertsEmptyEl.style.display = 'block';
+                // unreadAlerts stat is updated by loadDashboardSummary
+                return;
+            }
+            
+            if(alertsEmptyEl) alertsEmptyEl.style.display = 'none';
+            
+            notifications.forEach(notification => {
+                let alertTypeClass = 'info';
+                let alertIconChar = 'ℹ️';
+                switch(notification.priority) {
+                    case 'high': case 'urgent': alertTypeClass = 'danger'; alertIconChar = '⚠️'; break;
+                    case 'medium': alertTypeClass = 'warning'; alertIconChar = '⚠️'; break;
+                }
+                
+                const item = document.createElement('div');
+                item.className = `alert-item ${alertTypeClass}`;
+                if (notification.is_read === 0) item.style.fontWeight = 'bold';
+                
+                item.innerHTML = `
+                    <div class="alert-icon">${alertIconChar}</div>
+                    <div class="alert-content">
+                        <div class="alert-title">${notification.title || 'การแจ้งเตือน'}</div>
+                        <div class="alert-message">${notification.body || 'ไม่มีรายละเอียด'}</div>
+                        <div class="alert-time">${getTimeAgo(new Date(notification.created_at))}</div>
+                    </div>
+                    ${notification.is_read === 0 ? `<button class="alert-action" onclick="markNotificationAsRead('${notification.notification_id}')">อ่านแล้ว</button>` : ''}`;
+                alertsListEl.appendChild(item);
+            });
+            
+        } catch (error) {
+            console.error('Error loading notifications:', error);
+            if(alertsEmptyEl) alertsEmptyEl.style.display = 'block';
+        }
+    }
+    
+    async function markNotificationAsRead(notificationId) {
+        const token = getAuthToken();
+        if (!token || !patientData || !patientData.id) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/patient/notifications/${notificationId}/read`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Failed to mark notification as read');
+            
+            // Reload notifications and summary to update counts
+            loadNotifications(token, patientData.id);
+            loadDashboardSummary(token, patientData.id); 
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+            showApiError('ไม่สามารถอัปเดตสถานะการแจ้งเตือนได้');
+        }
+    }
+
+    function getTimeAgo(date) {
+        // ... (ฟังก์ชัน getTimeAgo เหมือนเดิม) ...
+        const now = new Date();
+        const diffMs = now - date;
+        const diffSec = Math.round(diffMs / 1000);
+        const diffMin = Math.round(diffSec / 60);
+        const diffHour = Math.round(diffMin / 60);
+        const diffDay = Math.round(diffHour / 24);
+        
+        if (diffSec < 60) return 'เมื่อสักครู่';
+        if (diffMin < 60) return `${diffMin} นาทีที่แล้ว`;
+        if (diffHour < 24) return `${diffHour} ชั่วโมงที่แล้ว`;
+        if (diffDay === 1) return 'เมื่อวาน';
+        if (diffDay < 7) return `${diffDay} วันที่แล้ว`;
+        return formatThaiDate(date, { day: 'numeric', month: 'short' }); // Older than a week
+    }
+
+    function viewAppointmentDetails(appointmentId) {
+        // alert(`ดูรายละเอียดนัดหมาย ID: ${appointmentId}`);
+        // Implement actual navigation or modal display
+        // window.location.href = `appointment-details.html?id=${appointmentId}`;
+        console.log(`View appointment details for ID: ${appointmentId}`);
+         // For now, you can implement a modal or redirect to another page.
+        alert(`(ตัวอย่าง) ดูรายละเอียดนัดหมาย ID: ${appointmentId}\nหน้านี้ยังไม่ได้สร้าง`);
+
+    }
+
+
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', () => {
+        if(getAuthToken()){ // ตรวจสอบ token ก่อนเริ่มโหลดข้อมูล
+            loadUserProfile(); // จะเรียก loadDashboardData() ต่อเมื่อได้ข้อมูลผู้ใช้
+        }
+    });
+</script>
+</body>
+</html>

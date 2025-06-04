@@ -1,0 +1,2721 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ตั้งค่า - ระบบติดตามการรักษาโรคต้อหิน</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS styles (เหมือนเดิม) */
+        :root {
+            --primary: #00A8A8;
+            --primary-dark: #007878;
+            --primary-light: #E0F2F1;
+            --secondary: #00CECE;
+            --dark: #324047;
+            --gray: #6B7280;
+            --light-gray: #F3F4F6;
+            --white: #FFFFFF;
+            --error: #EF4444;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --info: #3B82F6;
+            --border: #E5E7EB;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background-color: #F9FAFB;
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        /* Layout */
+        .layout {
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background-color: var(--white);
+            height: 100vh;
+            position: fixed;
+            box-shadow: var(--shadow);
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 20;
+            background: var(--primary);
+            color: var(--white);
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        .logo-container {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background-color: var(--primary-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .logo-subtitle {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .menu {
+            padding: 20px 0;
+            overflow-y: auto;
+            max-height: calc(100vh - 91px);
+        }
+
+        .menu-label {
+            padding: 0 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--gray);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        /* Header */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .notifications-btn {
+            background: var(--white);
+            border: 1px solid var(--border);
+            color: var(--gray);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .notifications-indicator {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            background-color: var(--error);
+            border-radius: 50%;
+            border: 2px solid var(--white);
+            display: none;
+        }
+
+        .user-dropdown {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 6px 8px 6px 6px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: var(--primary-light);
+            border-radius: 50%;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+
+        /* User Menu */
+        .user-menu {
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+            width: 200px;
+            z-index: 100;
+            display: none;
+        }
+
+        .user-menu.show {
+            display: block;
+        }
+
+        .user-menu-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-menu-item:hover {
+            background-color: var(--light-gray);
+        }
+
+        .user-menu-logout {
+            color: var(--error);
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card-action {
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            font-weight: 500;
+            color: var(--gray);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: var(--primary);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* Settings Styles */
+        .setting-section {
+            margin-bottom: 30px;
+        }
+
+        .setting-section-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info {
+            flex: 1;
+            padding-right: 20px;
+        }
+
+        .setting-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .setting-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .setting-description {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 8px;
+        }
+
+        .setting-control {
+            min-width: 100px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -8px;
+        }
+
+        .form-col {
+            flex: 1;
+            min-width: 250px;
+            padding: 0 8px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--dark);
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 168, 168, 0.1);
+        }
+
+        .form-help {
+            font-size: 13px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        .form-switch {
+            display: flex;
+            align-items: center;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            margin-right: 8px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gray);
+            transition: .3s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: var(--light-gray);
+            color: var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--gray);
+            color: var(--white);
+        }
+
+        .btn-danger {
+            background-color: var(--error);
+            color: var(--white);
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .btn-lg {
+            padding: 12px 20px;
+            font-size: 16px;
+        }
+
+        /* Theme Selection */
+        .theme-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .theme-option {
+            width: 120px;
+            cursor: pointer;
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .theme-option.active {
+            border-color: var(--primary);
+        }
+
+        .theme-preview {
+            height: 80px;
+            width: 100%;
+        }
+
+        .theme-name {
+            padding: 8px;
+            text-align: center;
+            font-size: 13px;
+            background: var(--light-gray);
+        }
+
+        .theme-option.active .theme-name {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* Font Size Demo */
+        .font-size-demo {
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-top: 12px;
+            line-height: 1.5;
+        }
+
+        /* Language Selector */
+        .language-select {
+            width: 200px;
+        }
+
+        .language-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .language-flag {
+            width: 20px;
+            height: 15px;
+            object-fit: contain;
+        }
+
+        /* Data Sync */
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .sync-status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .sync-status-indicator.success {
+            background-color: var(--success);
+        }
+
+        .sync-status-indicator.error {
+            background-color: var(--error);
+        }
+
+        .sync-status-indicator.warning {
+            background-color: var(--warning);
+        }
+
+        /* API Error */
+        .api-error {
+            background-color: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            display: none;
+        }
+
+        .api-error-icon {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(239, 68, 68, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--error);
+            flex-shrink: 0;
+        }
+
+        .api-error-content {
+            flex: 1;
+        }
+
+        .api-error-title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .api-error-message {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .api-error-retry {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background-color: var(--error);
+            color: var(--white);
+            transition: all 0.3s ease;
+        }
+
+        .api-error-retry:hover {
+            background-color: #dc2626;
+        }
+
+        /* Modal */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            font-size: 18px;
+            color: var(--gray);
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background-color: var(--gray);
+            color: var(--white);
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .modal-btn.secondary {
+            background-color: var(--light-gray);
+            color: var(--dark);
+        }
+
+        .modal-btn.danger {
+            background-color: var(--error);
+            color: var(--white);
+        }
+
+        /* Alert */
+        .alert {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-icon {
+            font-size: 20px;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .alert-message {
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background-color: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .alert-warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .alert-error {
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--error);
+        }
+
+        .alert-info {
+            background-color: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: var(--info);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--light-gray);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 4px;
+            width: 0;
+            transition: width 0.5s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding-top: 60px;
+            }
+            
+            .setting-item {
+                flex-direction: column;
+            }
+            
+            .setting-info {
+                padding-right: 0;
+                margin-bottom: 12px;
+            }
+            
+            .setting-control {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 8px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .form-col {
+                width: 100%;
+            }
+            
+            .theme-options {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+    
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="logo-container">
+                <div class="logo">G</div>
+                <div class="logo-text">
+                    <div class="logo-title">GTMS</div>
+                    <div class="logo-subtitle">ระบบติดตามการรักษาโรคต้อหิน</div>
+                </div>
+            </div>
+            
+            <nav class="menu">
+                <p class="menu-label">หน้าหลัก</p>
+                <a href="dashboard.html" class="menu-item">
+                    <div class="menu-icon">📊</div>
+                    แดชบอร์ด
+                </a>
+                <a href="appointments.html" class="menu-item">
+                    <div class="menu-icon">📅</div>
+                    การนัดหมาย
+                </a>
+                
+                <p class="menu-label">การติดตามการรักษา</p>
+                <a href="iop-tracking.html" class="menu-item">
+                    <div class="menu-icon">👁️</div>
+                    ค่าความดันลูกตา
+                </a>
+                <a href="medications.html" class="menu-item">
+                    <div class="menu-icon">💊</div>
+                    ยาและการรักษา
+                </a>
+                <a href="eye-tests.html" class="menu-item">
+                    <div class="menu-icon">📝</div>
+                    ผลการตรวจวัด
+                </a>
+                
+                <p class="menu-label">อื่นๆ</p>
+                <a href="profile.html" class="menu-item">
+                    <div class="menu-icon">👤</div>
+                    ข้อมูลส่วนตัว
+                </a>
+                <a href="notifications.html" class="menu-item">
+                    <div class="menu-icon">🔔</div>
+                    การแจ้งเตือน
+                </a>
+                <a href="documents.html" class="menu-item">
+                    <div class="menu-icon">📄</div>
+                    เอกสารทางการแพทย์
+                </a>
+                <a href="settings.html" class="menu-item active">
+                    <div class="menu-icon">⚙️</div>
+                    ตั้งค่า
+                </a>
+                <a href="#" class="menu-item" onclick="logout()">
+                    <div class="menu-icon">🚪</div>
+                    ออกจากระบบ
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="api-error" id="apiError">
+                <div class="api-error-icon">⚠️</div>
+                <div class="api-error-content">
+                    <div class="api-error-title">ไม่สามารถโหลดข้อมูลได้</div>
+                    <div class="api-error-message" id="apiErrorMessage">กรุณาลองใหม่อีกครั้ง</div>
+                </div>
+                <button class="api-error-retry" onclick="loadSettings()">ลองใหม่</button>
+            </div>
+
+            <div class="alert alert-success" id="saveSuccess" style="display: none;">
+                <div class="alert-icon">✅</div>
+                <div class="alert-content">
+                    <div class="alert-title">บันทึกการตั้งค่าเรียบร้อย</div>
+                    <div class="alert-message">การตั้งค่าของคุณได้รับการบันทึกเรียบร้อยแล้ว</div>
+                </div>
+            </div>
+
+            <div class="content-header">
+                <h1 class="page-title">ตั้งค่า</h1>
+                
+                <div class="user-info">
+                    <button class="notifications-btn" onclick="location.href='notifications.html'">
+                        🔔
+                        <span class="notifications-indicator" id="notificationsIndicator"></span>
+                    </button>
+                    
+                    <div class="user-dropdown" onclick="toggleUserMenu()">
+                        <div class="user-avatar" id="headerUserAvatar">-</div>
+                        <span class="user-name" id="headerUserName">กำลังโหลด...</span>
+                        <span>▼</span>
+                    </div>
+
+                    <div class="user-menu" id="userMenu">
+                        <a href="profile.html" class="user-menu-item">
+                            <div class="menu-icon">👤</div>
+                            โปรไฟล์
+                        </a>
+                        <a href="settings.html" class="user-menu-item">
+                            <div class="menu-icon">⚙️</div>
+                            ตั้งค่า
+                        </a>
+                        <a href="#" class="user-menu-item user-menu-logout" onclick="logout()">
+                            <div class="menu-icon">🚪</div>
+                            ออกจากระบบ
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+                <div class="tabs">
+                 <div class="tab active" data-tab="general" onclick="switchTab('general')">ทั่วไป</div>
+                 <div class="tab" data-tab="display" onclick="switchTab('display')">การแสดงผล</div>
+                 <div class="tab" data-tab="notification" onclick="switchTab('notification')">การแจ้งเตือน</div>
+                 <div class="tab" data-tab="data" onclick="switchTab('data')">ข้อมูลและความเป็นส่วนตัว</div>
+                 <div class="tab" data-tab="account" onclick="switchTab('account')">บัญชีผู้ใช้</div>
+            </div>
+
+            <div id="general-tab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">การตั้งค่าทั่วไป</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="setting-section">
+                            <h3 class="setting-section-header">ภาษา</h3>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">ภาษาที่ใช้แสดงในระบบ</div>
+                                    <div class="setting-description">เลือกภาษาที่ต้องการให้แสดงในระบบ</div>
+                                </div>
+                                <div class="setting-control">
+                                    <select class="form-select language-select" id="language-select">
+                                        <option value="th" selected>ไทย</option>
+                                        <option value="en">English</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-section">
+                            <h3 class="setting-section-header">เวลาและวันที่</h3>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">รูปแบบเวลา</div>
+                                    <div class="setting-description">เลือกรูปแบบการแสดงเวลา</div>
+                                </div>
+                                <div class="setting-control">
+                                    <select class="form-select" id="time-format">
+                                        <option value="24h" selected>24 ชั่วโมง (เช่น 14:30)</option>
+                                        <option value="12h">12 ชั่วโมง (เช่น 2:30 PM)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">รูปแบบวันที่</div>
+                                    <div class="setting-description">เลือกรูปแบบการแสดงวันที่</div>
+                                </div>
+                                <div class="setting-control">
+                                    <select class="form-select" id="date-format">
+                                        <option value="thai" selected>วัน เดือน ปี (พ.ศ.)</option>
+                                        <option value="iso">yyyy-mm-dd</option>
+                                        <option value="eu">dd/mm/yyyy</option>
+                                        <option value="us">mm/dd/yyyy</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">วันแรกของสัปดาห์</div>
+                                    <div class="setting-description">เลือกวันเริ่มต้นของสัปดาห์ในปฏิทิน</div>
+                                </div>
+                                <div class="setting-control">
+                                    <select class="form-select" id="week-start">
+                                        <option value="sunday" selected>วันอาทิตย์</option>
+                                        <option value="monday">วันจันทร์</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-section">
+                            <h3 class="setting-section-header">การวัดค่า</h3>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">หน่วยการวัดความดันลูกตา</div>
+                                    <div class="setting-description">เลือกหน่วยที่ใช้แสดงค่าความดันลูกตา</div>
+                                </div>
+                                <div class="setting-control">
+                                    <select class="form-select" id="iop-unit">
+                                        <option value="mmHg" selected>มิลลิเมตรปรอท (mmHg)</option>
+                                        <option value="kPa">กิโลปาสคาล (kPa)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-section">
+                            <button class="btn btn-primary" onclick="saveGeneralSettings()">บันทึกการตั้งค่า</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="display-tab" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">การตั้งค่าการแสดงผล</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="setting-section">
+                            <h3 class="setting-section-header">ธีม</h3>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">ธีมของระบบ</div>
+                                    <div class="setting-description">เลือกธีมสีของระบบ</div>
+                                    
+                                    <div class="theme-options">
+                                        <div class="theme-option active" data-theme="teal" onclick="selectTheme('teal')">
+                                            <div class="theme-preview" style="background: linear-gradient(to bottom, #00A8A8 50%, #E0F2F1 50%);"></div>
+                                            <div class="theme-name">สีฟ้าเขียว</div>
+                                        </div>
+                                        <div class="theme-option" data-theme="blue" onclick="selectTheme('blue')">
+                                            <div class="theme-preview" style="background: linear-gradient(to bottom, #2563EB 50%, #EFF6FF 50%);"></div>
+                                            <div class="theme-name">สีน้ำเงิน</div>
+                                        </div>
+                                        <div class="theme-option" data-theme="green" onclick="selectTheme('green')">
+                                            <div class="theme-preview" style="background: linear-gradient(to bottom, #10B981 50%, #ECFDF5 50%);"></div>
+                                            <div class="theme-name">สีเขียว</div>
+                                        </div>
+                                        <div class="theme-option" data-theme="purple" onclick="selectTheme('purple')">
+                                            <div class="theme-preview" style="background: linear-gradient(to bottom, #8B5CF6 50%, #F5F3FF 50%);"></div>
+                                            <div class="theme-name">สีม่วง</div>
+                                        </div>
+                                        <div class="theme-option" data-theme="gray" onclick="selectTheme('gray')">
+                                            <div class="theme-preview" style="background: linear-gradient(to bottom, #6B7280 50%, #F9FAFB 50%);"></div>
+                                            <div class="theme-name">สีเทา</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">โหมดมืด</div>
+                                    <div class="setting-description">เปิดใช้งานโหมดมืดเพื่อลดแสงจากหน้าจอ</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="switch">
+                                        <input type="checkbox" id="dark-mode">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-section">
+                            <h3 class="setting-section-header">ขนาดตัวอักษร</h3>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">ขนาดตัวอักษร</div>
+                                    <div class="setting-description">เลือกขนาดตัวอักษรที่เหมาะสมกับคุณ</div>
+                                    
+                                    <div class="font-size-demo" id="font-size-demo">
+                                        นี่คือตัวอย่างขนาดตัวอักษร<br>
+                                        ค่าความดันลูกตา: 16 mmHg<br>
+                                        วันที่ตรวจล่าสุด: 7 พฤษภาคม 2568
+                                    </div>
+                                </div>
+                                <div class="setting-control">
+                                    <select class="form-select" id="font-size" onchange="updateFontSizeDemo()">
+                                        <option value="small">เล็ก</option>
+                                        <option value="medium" selected>กลาง</option>
+                                        <option value="large">ใหญ่</option>
+                                        <option value="x-large">ใหญ่มาก</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-section">
+                            <h3 class="setting-section-header">กราฟและการนำเสนอข้อมูล</h3>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">แสดงกราฟด้วยเส้นแนวโน้ม</div>
+                                    <div class="setting-description">แสดงเส้นแนวโน้มบนกราฟข้อมูลค่าความดันลูกตา</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="switch">
+                                        <input type="checkbox" id="trend-line" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">แสดงช่วงค่าปกติ</div>
+                                    <div class="setting-description">แสดงแถบช่วงค่าปกติบนกราฟข้อมูล</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="switch">
+                                        <input type="checkbox" id="normal-range" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">รูปแบบกราฟเริ่มต้น</div>
+                                    <div class="setting-description">เลือกรูปแบบการแสดงกราฟเริ่มต้น</div>
+                                </div>
+                                <div class="setting-control">
+                                    <select class="form-select" id="default-chart-type">
+                                        <option value="line" selected>กราฟเส้น</option>
+                                        <option value="bar">กราฟแท่ง</option>
+                                        <option value="scatter">กราฟจุด</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-section">
+                            <button class="btn btn-primary" onclick="saveDisplaySettings()">บันทึกการตั้งค่า</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="notification-tab" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">การตั้งค่าการแจ้งเตือน</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="setting-section">
+                            <h3 class="setting-section-header">การแจ้งเตือนทั่วไป</h3>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">เปิดใช้งานการแจ้งเตือน</div>
+                                    <div class="setting-description">เปิดหรือปิดการใช้งานการแจ้งเตือนทั้งหมด</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="switch">
+                                        <input type="checkbox" id="notifications-enabled" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-section">
+                            <h3 class="setting-section-header">การเตือนทานยา</h3>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">เปิดใช้งานการเตือนทานยา</div>
+                                    <div class="setting-description">รับการแจ้งเตือนเมื่อถึงเวลาทานยา</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="switch">
+                                        <input type="checkbox" id="medication-reminders" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">เวลาแจ้งเตือนล่วงหน้า</div>
+                                    <div class="setting-description">แจ้งเตือนล่วงหน้าก่อนถึงเวลาทานยา</div>
+                                </div>
+                                <div class="setting-control">
+                                    <select class="form-select" id="medication-reminder-time">
+                                        <option value="0">ตรงเวลา</option>
+                                        <option value="5">5 นาทีก่อนเวลา</option>
+                                        <option value="10">10 นาทีก่อนเวลา</option>
+                                        <option value="15" selected>15 นาทีก่อนเวลา</option>
+                                        <option value="30">30 นาทีก่อนเวลา</option>
+                                        <option value="60">1 ชั่วโมงก่อนเวลา</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">แจ้งเตือนซ้ำ</div>
+                                    <div class="setting-description">แจ้งเตือนซ้ำหากยังไม่ได้ทำเครื่องหมายว่าทานยาแล้ว</div>
+                                </div>
+                                <div class="setting-control">
+                                    <select class="form-select" id="medication-reminder-repeat">
+                                        <option value="0">ไม่มีการแจ้งเตือนซ้ำ</option>
+                                        <option value="5" selected>ทุก 5 นาที</option>
+                                        <option value="10">ทุก 10 นาที</option>
+                                        <option value="15">ทุก 15 นาที</option>
+                                        <option value="30">ทุก 30 นาที</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">จำนวนครั้งแจ้งเตือนซ้ำ</div>
+                                    <div class="setting-description">จำนวนครั้งสูงสุดที่จะแจ้งเตือนซ้ำ</div>
+                                </div>
+                                <div class="setting-control">
+                                    <select class="form-select" id="medication-reminder-max-repeat">
+                                        <option value="1">1 ครั้ง</option>
+                                        <option value="2">2 ครั้ง</option>
+                                        <option value="3" selected>3 ครั้ง</option>
+                                        <option value="5">5 ครั้ง</option>
+                                        <option value="0">ไม่จำกัด</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-section">
+                            <h3 class="setting-section-header">การแจ้งเตือนนัดหมาย</h3>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">เปิดใช้งานการแจ้งเตือนนัดหมาย</div>
+                                    <div class="setting-description">รับการแจ้งเตือนเกี่ยวกับการนัดหมาย</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="switch">
+                                        <input type="checkbox" id="appointment-reminders" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">เวลาแจ้งเตือนล่วงหน้า</div>
+                                    <div class="setting-description">แจ้งเตือนล่วงหน้าก่อนวันนัดหมาย</div>
+                                </div>
+                                <div class="setting-control">
+                                    <select class="form-select" id="appointment-reminder-days">
+                                        <option value="0">วันนัดหมาย</option>
+                                        <option value="1" selected>1 วันก่อนนัดหมาย</option>
+                                        <option value="2">2 วันก่อนนัดหมาย</option>
+                                        <option value="3">3 วันก่อนนัดหมาย</option>
+                                        <option value="5">5 วันก่อนนัดหมาย</option>
+                                        <option value="7">7 วันก่อนนัดหมาย</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">เตือนในวันนัดหมาย</div>
+                                    <div class="setting-description">แจ้งเตือนอีกครั้งในวันนัดหมาย</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="switch">
+                                        <input type="checkbox" id="appointment-reminder-day-of" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-section">
+                            <h3 class="setting-section-header">การแจ้งเตือนอื่นๆ</h3>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">แจ้งเตือนเมื่อค่าความดันลูกตาผิดปกติ</div>
+                                    <div class="setting-description">แจ้งเตือนเมื่อบันทึกค่าความดันลูกตาที่ผิดปกติ</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="switch">
+                                        <input type="checkbox" id="iop-alerts" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">ค่าความดันลูกตาที่ต้องการแจ้งเตือน</div>
+                                    <div class="setting-description">แจ้งเตือนเมื่อค่าความดันลูกตาสูงกว่า (mmHg)</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input type="number" class="form-input" id="iop-alert-threshold" min="10" max="50" value="21" style="width: 100px;">
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">แจ้งเตือนเมื่อยาใกล้หมด</div>
+                                    <div class="setting-description">แจ้งเตือนเมื่อยาเหลือน้อยและต้องซื้อเพิ่ม</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="switch">
+                                        <input type="checkbox" id="medication-inventory-alerts" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">แจ้งเตือนเมื่อมีผลการตรวจใหม่</div>
+                                    <div class="setting-description">แจ้งเตือนเมื่อมีผลการตรวจใหม่เพิ่มเข้ามาในระบบ</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="switch">
+                                        <input type="checkbox" id="new-results-alerts" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-section">
+                            <button class="btn btn-primary" onclick="saveNotificationSettings()">บันทึกการตั้งค่า</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="data-tab" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">ข้อมูลและความเป็นส่วนตัว</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="setting-section">
+                            <h3 class="setting-section-header">การซิงค์ข้อมูล</h3>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">ซิงค์ข้อมูลอัตโนมัติ</div>
+                                    <div class="setting-description">ซิงค์ข้อมูลโดยอัตโนมัติเมื่อเชื่อมต่ออินเทอร์เน็ต</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="switch">
+                                        <input type="checkbox" id="auto-sync" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">ซิงค์ข้อมูลเมื่อใช้เครือข่ายมือถือ</div>
+                                    <div class="setting-description">อนุญาตให้ซิงค์ข้อมูลผ่านเครือข่ายมือถือ (ใช้ดาต้า)</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="switch">
+                                        <input type="checkbox" id="cellular-sync">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">ซิงค์ข้อมูลตอนนี้</div>
+                                    <div class="setting-description">บังคับซิงค์ข้อมูลระหว่างอุปกรณ์และเซิร์ฟเวอร์</div>
+                                    
+                                    <div class="sync-status" id="sync-status">
+                                        <span class="sync-status-indicator success"></span>
+                                        <span id="sync-status-text">ซิงค์ข้อมูลล่าสุดเมื่อ: 07 พ.ค. 2568 14:30</span>
+                                    </div>
+                                </div>
+                                <div class="setting-control">
+                                    <button class="btn btn-primary btn-sm" onclick="syncData()">ซิงค์ตอนนี้</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-section">
+                            <h3 class="setting-section-header">ข้อมูลส่วนตัว</h3>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">แชร์ข้อมูลกับแพทย์</div>
+                                    <div class="setting-description">อนุญาตให้แพทย์ของคุณเข้าถึงข้อมูลการรักษา</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="switch">
+                                        <input type="checkbox" id="share-with-doctor" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">แชร์ข้อมูลเพื่อการวิจัย</div>
+                                    <div class="setting-description">แชร์ข้อมูลแบบไม่ระบุตัวตนเพื่อช่วยในการวิจัยโรคต้อหิน</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="switch">
+                                        <input type="checkbox" id="share-for-research">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">ส่งออกข้อมูลทั้งหมด</div>
+                                    <div class="setting-description">ดาวน์โหลดข้อมูลทั้งหมดของคุณในรูปแบบไฟล์</div>
+                                </div>
+                                <div class="setting-control">
+                                    <button class="btn btn-secondary btn-sm" onclick="exportData()">ส่งออกข้อมูล</button>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">ลบข้อมูลทั้งหมด</div>
+                                    <div class="setting-description">ลบข้อมูลทั้งหมดของคุณออกจากระบบอย่างถาวร</div>
+                                </div>
+                                <div class="setting-control">
+                                    <button class="btn btn-danger btn-sm" onclick="showDeleteDataModal()">ลบข้อมูล</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-section">
+                            <button class="btn btn-primary" onclick="saveDataSettings()">บันทึกการตั้งค่า</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="account-tab" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">บัญชีผู้ใช้</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="setting-section">
+                            <h3 class="setting-section-header">ข้อมูลบัญชี</h3>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">อีเมล</div>
+                                    <div class="setting-description">อีเมลที่ใช้ในการเข้าสู่ระบบ</div>
+                                    <div id="account-email">example@email.com</div>
+                                </div>
+                                <div class="setting-control">
+                                    <button class="btn btn-secondary btn-sm" onclick="showChangeEmailModal()">เปลี่ยน</button>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">รหัสผ่าน</div>
+                                    <div class="setting-description">เปลี่ยนรหัสผ่านของคุณ</div>
+                                </div>
+                                <div class="setting-control">
+                                    <button class="btn btn-secondary btn-sm" onclick="showChangePasswordModal()">เปลี่ยน</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-section">
+                            <h3 class="setting-section-header">การเชื่อมต่อ</h3>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">อุปกรณ์ที่เข้าสู่ระบบ</div>
+                                    <div class="setting-description">จัดการอุปกรณ์ที่ใช้เข้าสู่ระบบบัญชีของคุณ</div>
+                                </div>
+                                <div class="setting-control">
+                                    <button class="btn btn-secondary btn-sm" onclick="showDevicesModal()">จัดการ</button>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">การยืนยันตัวตนสองชั้น</div>
+                                    <div class="setting-description">เพิ่มความปลอดภัยให้บัญชีของคุณ</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="switch">
+                                        <input type="checkbox" id="two-factor-auth">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-section">
+                            <h3 class="setting-section-header">การปิดใช้งานและลบบัญชี</h3>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">ปิดใช้งานบัญชีชั่วคราว</div>
+                                    <div class="setting-description">บัญชีของคุณจะถูกปิดชั่วคราวและสามารถกลับมาใช้งานได้ในภายหลัง</div>
+                                </div>
+                                <div class="setting-control">
+                                    <button class="btn btn-secondary btn-sm" onclick="showDeactivateAccountModal()">ปิดใช้งานชั่วคราว</button>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">ลบบัญชีถาวร</div>
+                                    <div class="setting-description">บัญชีของคุณและข้อมูลทั้งหมดจะถูกลบออกจากระบบอย่างถาวร</div>
+                                </div>
+                                <div class="setting-control">
+                                    <button class="btn btn-danger btn-sm" onclick="showDeleteAccountModal()">ลบบัญชี</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-backdrop" id="changeEmailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">เปลี่ยนอีเมล</h2>
+                <button class="modal-close" onclick="closeModal('changeEmailModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="changeEmailForm">
+                    <div class="form-group">
+                        <label class="form-label">อีเมลปัจจุบัน</label>
+                        <input type="email" class="form-input" id="current-email" disabled>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">อีเมลใหม่</label>
+                        <input type="email" class="form-input" id="new-email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">รหัสผ่าน</label>
+                        <input type="password" class="form-input" id="email-password" required>
+                        <div class="form-help">กรอกรหัสผ่านเพื่อยืนยันการเปลี่ยนอีเมล</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('changeEmailModal')">ยกเลิก</button>
+                <button class="modal-btn primary" onclick="changeEmail()">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="changePasswordModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">เปลี่ยนรหัสผ่าน</h2>
+                <button class="modal-close" onclick="closeModal('changePasswordModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    <div class="form-group">
+                        <label class="form-label">รหัสผ่านปัจจุบัน</label>
+                        <input type="password" class="form-input" id="current-password" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">รหัสผ่านใหม่</label>
+                        <input type="password" class="form-input" id="new-password" required>
+                        <div class="form-help">รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร และประกอบด้วยตัวอักษรและตัวเลข</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">ยืนยันรหัสผ่านใหม่</label>
+                        <input type="password" class="form-input" id="confirm-password" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('changePasswordModal')">ยกเลิก</button>
+                <button class="modal-btn primary" onclick="changePassword()">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="deleteDataModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">ลบข้อมูลทั้งหมด</h2>
+                <button class="modal-close" onclick="closeModal('deleteDataModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-error">
+                    <div class="alert-icon">⚠️</div>
+                    <div class="alert-content">
+                        <div class="alert-title">คำเตือน!</div>
+                        <div class="alert-message">
+                            การลบข้อมูลทั้งหมดเป็นการดำเนินการที่ไม่สามารถเรียกคืนได้<br>
+                            ข้อมูลทั้งหมดของคุณจะถูกลบออกจากระบบอย่างถาวร
+                        </div>
+                    </div>
+                </div>
+                
+                <form id="deleteDataForm">
+                    <div class="form-group">
+                        <label class="form-label">พิมพ์ "ลบข้อมูลทั้งหมด" เพื่อยืนยัน</label>
+                        <input type="text" class="form-input" id="delete-data-confirm" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">รหัสผ่าน</label>
+                        <input type="password" class="form-input" id="delete-data-password" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('deleteDataModal')">ยกเลิก</button>
+                <button class="modal-btn danger" onclick="deleteAllData()">ลบข้อมูลทั้งหมด</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="deleteAccountModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">ลบบัญชีถาวร</h2>
+                <button class="modal-close" onclick="closeModal('deleteAccountModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-error">
+                    <div class="alert-icon">⚠️</div>
+                    <div class="alert-content">
+                        <div class="alert-title">คำเตือน!</div>
+                        <div class="alert-message">
+                            การลบบัญชีเป็นการดำเนินการที่ไม่สามารถเรียกคืนได้<br>
+                            บัญชีของคุณและข้อมูลทั้งหมดจะถูกลบออกจากระบบอย่างถาวร
+                        </div>
+                    </div>
+                </div>
+                
+                <form id="deleteAccountForm">
+                    <div class="form-group">
+                        <label class="form-label">เหตุผลที่คุณต้องการลบบัญชี</label>
+                        <select class="form-select" id="delete-account-reason">
+                            <option value="">กรุณาเลือกเหตุผล</option>
+                            <option value="not-useful">ไม่ได้ใช้งานระบบแล้ว</option>
+                            <option value="complicated">ระบบใช้งานยาก</option>
+                            <option value="other-app">ใช้แอปพลิเคชันอื่นแทน</option>
+                            <option value="privacy">กังวลเรื่องความเป็นส่วนตัว</option>
+                            <option value="other">อื่นๆ</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="delete-account-reason-other" style="display: none;">
+                        <label class="form-label">ระบุเหตุผลอื่นๆ</label>
+                        <textarea class="form-input" id="delete-account-reason-text" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">พิมพ์ "ลบบัญชีถาวร" เพื่อยืนยัน</label>
+                        <input type="text" class="form-input" id="delete-account-confirm" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">รหัสผ่าน</label>
+                        <input type="password" class="form-input" id="delete-account-password" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('deleteAccountModal')">ยกเลิก</button>
+                <button class="modal-btn danger" onclick="deleteAccount()">ลบบัญชี</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="devicesModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">อุปกรณ์ที่เข้าสู่ระบบ</h2>
+                <button class="modal-close" onclick="closeModal('devicesModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="devices-container">
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('devicesModal')">ปิด</button>
+                <button class="modal-btn danger" onclick="logoutAllDevices()">ออกจากระบบทุกอุปกรณ์</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:5001/api'; // 🚨 เปลี่ยนให้ตรงกับพอร์ตของ Backend
+        let userData = null;
+        let currentTab = 'general';
+        let currentTheme = 'teal';
+        let settings = null;
+        let devices = [];
+        
+        // ตรวจสอบการเข้าสู่ระบบ
+        function checkAuth() {
+            const token = localStorage.getItem('gtms_token');
+            
+            if (!token) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            
+            return token;
+        }
+
+        // โหลดข้อมูลผู้ใช้งาน
+        async function loadUserProfile() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                // 🚨 Endpoint สำหรับดึงข้อมูลผู้ใช้คือ /api/auth/me
+                const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load user profile');
+                }
+                
+                const responseData = await response.json();
+                userData = responseData.user; // 🚨 Backend ส่งข้อมูลผู้ใช้มาใน key 'user'
+                
+                // อัปเดตข้อมูลผู้ใช้ในหน้า
+                updateUserUI();
+                
+                // โหลดการตั้งค่า
+                loadSettings();
+                
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showApiError('ไม่สามารถโหลดข้อมูลโปรไฟล์ได้');
+            }
+        }
+
+        // อัปเดตข้อมูลผู้ใช้ในหน้า
+        function updateUserUI() {
+            if (!userData) return;
+            
+            // อัปเดตโปรไฟล์ในส่วนหัว
+            const headerUserName = document.getElementById('headerUserName');
+            const headerUserAvatar = document.getElementById('headerUserAvatar');
+            
+            // 🚨 ใช้ firstName และ lastName จาก userData โดยตรง (ถ้ามี)
+            if (userData.firstName && userData.lastName) {
+                headerUserName.textContent = `${userData.firstName} ${userData.lastName}`;
+                headerUserAvatar.textContent = userData.firstName.charAt(0);
+            } else if (userData.username) { // หรือใช้ username ถ้าไม่มีชื่อ
+                headerUserName.textContent = userData.username;
+                headerUserAvatar.textContent = userData.username.charAt(0);
+            } else {
+                headerUserName.textContent = 'ผู้ใช้งาน';
+                headerUserAvatar.textContent = '?';
+            }
+            
+            // อัปเดตอีเมลในส่วนบัญชี
+            document.getElementById('account-email').textContent = userData.email || 'ไม่ระบุ';
+            document.getElementById('current-email').value = userData.email || '';
+        }
+
+        // สลับการแสดงแท็บ
+        function switchTab(tab) {
+            // ซ่อนเนื้อหาทั้งหมด
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            
+            // แสดงเนื้อหาที่เลือก
+            document.getElementById(`${tab}-tab`).style.display = 'block';
+            
+            // อัปเดตแท็บที่เลือก
+            document.querySelectorAll('.tab').forEach(tabEl => {
+                tabEl.classList.remove('active');
+            });
+            document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+            
+            // เก็บแท็บปัจจุบัน
+            currentTab = tab;
+
+            // โหลดข้อมูลอุปกรณ์เมื่อเข้าแท็บ Account
+            if (tab === 'account') {
+                loadDevices();
+            }
+        }
+
+        // โหลดการตั้งค่า
+        async function loadSettings() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            hideApiError();
+            
+            try {
+                // 🚨 Endpoint สำหรับดึงการตั้งค่าคือ /api/patient/settings
+                const response = await fetch(`${API_BASE_URL}/patient/settings`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load settings');
+                }
+                
+                const responseData = await response.json();
+                settings = responseData.settings; // 🚨 Backend ส่งข้อมูล Settings มาใน key 'settings'
+                
+                // อัปเดตการตั้งค่าในฟอร์ม
+                updateSettingsUI();
+                
+            } catch (error) {
+                console.error('Error loading settings:', error);
+                showApiError('ไม่สามารถโหลดการตั้งค่าได้');
+            }
+        }
+
+        // อัปเดตการตั้งค่าในฟอร์ม
+        function updateSettingsUI() {
+            if (!settings) return;
+            
+            // อัปเดตการตั้งค่าทั่วไป
+            document.getElementById('language-select').value = settings.language || 'th';
+            // Backend ไม่มี time_format, date_format, week_start, iop_unit ใน UserSettings
+            // หากต้องการเก็บค่าเหล่านี้ ต้องเพิ่มคอลัมน์ในตาราง UserSettings ของ DB และ Backend
+            document.getElementById('time-format').value = settings.time_zone ? (settings.time_zone.includes('24h') ? '24h' : '12h') : '24h'; // ใช้ time_zone มาอนุมาน
+            document.getElementById('date-format').value = 'thai'; // ไม่มีใน backend, ตั้ง default
+            document.getElementById('week-start').value = 'sunday'; // ไม่มีใน backend, ตั้ง default
+            document.getElementById('iop-unit').value = 'mmHg'; // ไม่มีใน backend, ตั้ง default
+            
+            // อัปเดตการตั้งค่าการแสดงผล
+            if (settings.theme) {
+                selectTheme(settings.theme);
+            }
+            // Backend's `theme` field in UserSettings is direct string, not `dark_mode` boolean
+            // If `dark_mode` is a separate setting in your DB, it would need a column for it.
+            document.getElementById('dark-mode').checked = settings.theme === 'dark'; // อนุมานจาก theme ถ้าไม่มี dark_mode field แยก
+            
+            if (settings.font_size) {
+                document.getElementById('font-size').value = settings.font_size;
+                updateFontSizeDemo();
+            }
+            // Backend ไม่มี trend_line, normal_range, default_chart_type ใน UserSettings
+            // หากต้องการเก็บค่าเหล่านี้ ต้องเพิ่มคอลัมน์ในตาราง UserSettings ของ DB และ Backend
+            document.getElementById('trend-line').checked = true; // ตั้ง default
+            document.getElementById('normal-range').checked = true; // ตั้ง default
+            document.getElementById('default-chart-type').value = settings.default_view || 'line'; // ใช้ default_view มาอนุมาน
+            
+            // อัปเดตการตั้งค่าการแจ้งเตือน
+            // Backend `notification_preferences` เก็บเป็น JSON string
+            if (settings.notification_preferences) {
+                try {
+                    const notificationPrefs = JSON.parse(settings.notification_preferences);
+                    document.getElementById('notifications-enabled').checked = notificationPrefs.enabled ?? true;
+                    if (notificationPrefs.medication) {
+                        document.getElementById('medication-reminders').checked = notificationPrefs.medication.enabled ?? true;
+                        document.getElementById('medication-reminder-time').value = notificationPrefs.medication.reminder_time ?? 15;
+                        document.getElementById('medication-reminder-repeat').value = notificationPrefs.medication.repeat_interval ?? 5;
+                        document.getElementById('medication-reminder-max-repeat').value = notificationPrefs.medication.max_repeats ?? 3;
+                    }
+                    if (notificationPrefs.appointment) {
+                        document.getElementById('appointment-reminders').checked = notificationPrefs.appointment.enabled ?? true;
+                        document.getElementById('appointment-reminder-days').value = notificationPrefs.appointment.days_before ?? 1;
+                        document.getElementById('appointment-reminder-day-of').checked = notificationPrefs.appointment.remind_on_day ?? true;
+                    }
+                    document.getElementById('iop-alerts').checked = notificationPrefs.iop_alerts ?? true;
+                    document.getElementById('iop-alert-threshold').value = notificationPrefs.iop_alert_threshold ?? 21;
+                    document.getElementById('medication-inventory-alerts').checked = notificationPrefs.medication_inventory_alerts ?? true;
+                    document.getElementById('new-results-alerts').checked = notificationPrefs.new_results_alerts ?? true;
+                } catch (e) {
+                    console.error("Failed to parse notification_preferences:", e);
+                }
+            }
+
+            // อัปเดตการตั้งค่าข้อมูลและความเป็นส่วนตัว
+            // Backend `privacy_settings` เก็บเป็น JSON string
+            if (settings.privacy_settings) {
+                try {
+                    const privacySettings = JSON.parse(settings.privacy_settings);
+                    document.getElementById('auto-sync').checked = privacySettings.auto_sync ?? true;
+                    document.getElementById('cellular-sync').checked = privacySettings.cellular_sync ?? false;
+                    document.getElementById('share-with-doctor').checked = privacySettings.share_with_doctor ?? true;
+                    document.getElementById('share-for-research').checked = privacySettings.share_for_research ?? false;
+                } catch (e) {
+                    console.error("Failed to parse privacy_settings:", e);
+                }
+            }
+            
+            // อัปเดตการตั้งค่าบัญชี (two_fa_enabled อยู่ใน Users table, ไม่ใช่ UserSettings)
+            // ถ้า loadUserProfile โหลดข้อมูล User มาแล้ว จะอัปเดตตรงนี้ได้
+            if (userData && userData.twoFaEnabled !== undefined) { // 🚨 ใช้ twoFaEnabled จาก userData
+                document.getElementById('two-factor-auth').checked = userData.twoFaEnabled;
+            } else {
+                document.getElementById('two-factor-auth').checked = false; // ตั้ง default
+            }
+            
+            // อัปเดตสถานะการซิงค์ (last_sync ไม่มีใน UserSettings, อาจจะต้องการ field ใน UserProfiles หรือ UserSettings)
+            // สำหรับตอนนี้, เราจะใช้ last_login จาก UserData เพื่อแสดงข้อมูลคล้ายๆ กัน
+            if (userData && userData.lastLogin) { // 🚨 ใช้ lastLogin จาก userData
+                document.getElementById('sync-status-text').textContent = `ซิงค์ข้อมูลล่าสุดเมื่อ: ${formatThaiDateTime(new Date(userData.lastLogin))}`;
+            } else {
+                document.getElementById('sync-status-text').textContent = 'ซิงค์ข้อมูลล่าสุดเมื่อ: ไม่พบข้อมูล';
+            }
+        }
+
+        // โหลดข้อมูลอุปกรณ์
+        async function loadDevices() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                // 🚨 Backend ไม่มี endpoint /user/devices, ข้อมูล session อยู่ใน UserSessions
+                // ต้องสร้าง Endpoint ใหม่ใน Backend เพื่อดึงข้อมูล UserSessions สำหรับผู้ใช้คนนั้น
+                // หรือใช้ endpoint /api/auth/me ซึ่งอาจจะมีข้อมูล session บางส่วน
+                // สำหรับตอนนี้ ถ้า Backend ไม่มี /user/devices ผมจะให้ใช้ข้อมูล Dummy ไปก่อน
+                const response = await fetch(`${API_BASE_URL}/auth/sessions`, { // สมมติว่ามี endpoint นี้ใน backend
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    // หากไม่มี endpoint นี้ หรือเกิด error, ใช้ข้อมูล dummy
+                    console.warn('Backend endpoint /api/auth/sessions not found or failed. Using dummy device data.');
+                    devices = [
+                        { id: 'dummy-1', device_name: 'คอมพิวเตอร์ปัจจุบัน', device_type: 'desktop', last_login: new Date(), ip_address: '127.0.0.1', browser: 'Chrome', is_current: true },
+                        { id: 'dummy-2', device_name: 'iPhone 15 Pro', device_type: 'mobile', last_login: new Date(Date.now() - 3600000 * 24), ip_address: '192.168.1.10', browser: 'Safari', is_current: false }
+                    ];
+                } else {
+                    const responseData = await response.json();
+                    // 🚨 Backend ส่งข้อมูล session มาใน key 'sessions'
+                    // ตรวจสอบโครงสร้างข้อมูลที่แท้จริงจาก Backend UserSessions
+                    devices = responseData.sessions.map(session => ({
+                        id: session.session_id,
+                        device_name: session.device_info || 'ไม่ระบุ',
+                        device_type: session.device_info ? (session.device_info.includes('Mobile') ? 'mobile' : 'desktop') : 'unknown', // อนุมานจาก user agent
+                        last_login: new Date(session.created_at), // หรือ last_login จาก Users table ถ้ามี
+                        ip_address: session.ip_address,
+                        browser: session.user_agent ? session.user_agent.split(' ')[0] : 'Unknown', // ดึงแค่ชื่อ Browser
+                        is_current: session.token === token // เปรียบเทียบ token เพื่อระบุอุปกรณ์ปัจจุบัน
+                    }));
+                }
+                
+                renderDevices();
+                
+            } catch (error) {
+                console.error('Error loading devices:', error);
+                // ในกรณีที่เกิดข้อผิดพลาดรุนแรง
+                devices = [
+                    { id: 'error-device', device_name: 'ไม่สามารถโหลดข้อมูลอุปกรณ์ได้', device_type: 'unknown', last_login: new Date(), ip_address: 'Error', browser: 'Error', is_current: false }
+                ];
+                renderDevices();
+                // ไม่ต้องแสดงข้อความแจ้งเตือนในกรณีนี้
+            }
+        }
+
+        // แสดงอุปกรณ์
+        function renderDevices() {
+            const container = document.getElementById('devices-container');
+            container.innerHTML = '';
+            
+            if (!devices || devices.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--gray);">ไม่พบอุปกรณ์ที่เข้าสู่ระบบ</p>';
+                return;
+            }
+            
+            devices.forEach((device, index) => {
+                const deviceItem = document.createElement('div');
+                deviceItem.className = 'setting-item';
+                
+                let deviceIcon = '📱';
+                if (device.device_type === 'desktop') deviceIcon = '💻';
+                else if (device.device_type === 'tablet') deviceIcon = '📲';
+                
+                deviceItem.innerHTML = `
+                    <div class="setting-info">
+                        <div class="setting-title">
+                            ${deviceIcon} ${device.device_name || 'อุปกรณ์ไม่ระบุชื่อ'}
+                            ${device.is_current ? '<span class="setting-badge">อุปกรณ์ปัจจุบัน</span>' : ''}
+                        </div>
+                        <div class="setting-description">
+                            <strong>เข้าสู่ระบบเมื่อ:</strong> ${formatThaiDateTime(new Date(device.last_login))}
+                        </div>
+                        <div class="setting-description">
+                            <strong>IP:</strong> ${device.ip_address || 'ไม่ระบุ'} | <strong>เบราว์เซอร์:</strong> ${device.browser || 'ไม่ระบุ'}
+                        </div>
+                    </div>
+                    <div class="setting-control">
+                        ${!device.is_current ? `<button class="btn btn-danger btn-sm" onclick="logoutDevice('${device.id}')">ออกจากระบบ</button>` : ''}
+                    </div>
+                `;
+                
+                container.appendChild(deviceItem);
+            });
+        }
+
+        // ออกจากระบบอุปกรณ์เดียว
+        async function logoutDevice(sessionId) { // 🚨 รับ session_id แทน deviceId
+            const token = checkAuth();
+            if (!token) return;
+            
+            if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบอุปกรณ์นี้?')) {
+                return;
+            }
+
+            try {
+                // 🚨 Backend ไม่มี endpoint /user/devices/:deviceId/logout โดยตรงสำหรับ session_id
+                // Endpoint logout ของ backend คือ /api/auth/logout ซึ่งจะยกเลิกทุก session
+                // หรือต้องสร้าง endpoint /api/auth/logout-session/:sessionId ใน backend เพิ่ม
+                // สำหรับตอนนี้ จะเป็นการจำลองการ logout device โดยการรีโหลดข้อมูล
+                // ถ้าต้องการให้ logout แค่ session เดียวจริงๆ ต้องมีการแก้ไข Backend เพิ่ม
+                alert('ฟีเจอร์การออกจากระบบอุปกรณ์เดียวต้องมี Endpoint เฉพาะใน Backend. จะรีโหลดข้อมูลอุปกรณ์.');
+                await loadDevices(); // รีโหลดข้อมูลเพื่ออัปเดตสถานะ (สมมติว่า backend จะจัดการให้ session ไม่ Active)
+                renderDevices();
+                
+            } catch (error) {
+                console.error('Error logging out device:', error);
+                alert('ไม่สามารถออกจากระบบอุปกรณ์ได้ กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        // ออกจากระบบทุกอุปกรณ์
+        async function logoutAllDevices() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบทุกอุปกรณ์?')) {
+                return;
+            }
+            
+            try {
+                // 🚨 Backend endpoint คือ /api/auth/logout
+                const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to logout all devices');
+                }
+                
+                alert('ออกจากระบบทุกอุปกรณ์เรียบร้อยแล้ว คุณต้องเข้าสู่ระบบใหม่');
+                
+                // ออกจากระบบ (ลบ token และ redirect)
+                logout();
+                
+            } catch (error) {
+                console.error('Error logging out all devices:', error);
+                alert('ไม่สามารถออกจากระบบทุกอุปกรณ์ได้ กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        // ซิงค์ข้อมูล (ฟังก์ชันนี้ใน backend ไม่ได้ implement จริงๆ)
+        // Backend ไม่มี endpoint /sync
+        async function syncData() {
+            alert('ฟีเจอร์การซิงค์ข้อมูลนี้เป็นการจำลอง. ไม่มี Endpoint สำหรับ Sync โดยตรง.');
+            const syncStatusText = document.getElementById('sync-status-text');
+            const syncStatusIndicator = document.querySelector('#sync-status .sync-status-indicator');
+            
+            syncStatusText.textContent = 'กำลังซิงค์ข้อมูล...';
+            syncStatusIndicator.className = 'sync-status-indicator warning';
+
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 1500)); 
+
+            syncStatusText.textContent = `ซิงค์ข้อมูลล่าสุดเมื่อ: ${formatThaiDateTime(new Date())}`;
+            syncStatusIndicator.className = 'sync-status-indicator success';
+            showSuccessAlert();
+        }
+
+        // ส่งออกข้อมูล
+        async function exportData() { // 🚨 เปลี่ยนเป็น async
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                // 🚨 Backend endpoint คือ /api/patient/export-data
+                const response = await fetch(`${API_BASE_URL}/patient/export-data?format=json`, { // สามารถระบุ format=csv ได้
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to export data');
+                }
+
+                // ดึงข้อมูลเป็น blob (สำหรับไฟล์)
+                const blob = await response.blob();
+                const disposition = response.headers.get('Content-Disposition');
+                let filename = 'patient-data.json'; // Default filename
+
+                if (disposition && disposition.indexOf('attachment') !== -1) {
+                    const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                    const matches = filenameRegex.exec(disposition);
+                    if (matches != null && matches[1]) {
+                        filename = decodeURIComponent(matches[1].replace(/['"]/g, ''));
+                    }
+                }
+
+                // สร้าง URL สำหรับดาวน์โหลด
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                alert('ส่งออกข้อมูลสำเร็จ');
+
+            } catch (error) {
+                console.error('Error exporting data:', error);
+                alert('ไม่สามารถส่งออกข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        // เปลี่ยนอีเมล (Backend ไม่มี endpoint /user/change-email)
+        async function changeEmail() {
+            alert('ฟีเจอร์เปลี่ยนอีเมลยังไม่มี Endpoint ที่รองรับใน Backend. ไม่สามารถดำเนินการได้.');
+            closeModal('changeEmailModal');
+        }
+
+        // เปลี่ยนรหัสผ่าน
+        async function changePassword() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                alert('รหัสผ่านใหม่และยืนยันรหัสผ่านใหม่ไม่ตรงกัน');
+                return;
+            }
+            
+            if (newPassword.length < 8) {
+                alert('รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 8 ตัวอักษร');
+                return;
+            }
+            
+            try {
+                // 🚨 Endpoint คือ /api/patient/change-password
+                const response = await fetch(`${API_BASE_URL}/patient/change-password`, {
+                    method: 'PUT', // 🚨 Backend ใช้ PUT
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword,
+                        confirm_password: confirmPassword // Backend รับ confirm_password ด้วย
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to change password');
+                }
+                
+                // ปิด Modal
+                closeModal('changePasswordModal');
+                
+                // รีเซ็ตฟอร์ม
+                document.getElementById('changePasswordForm').reset();
+                
+                alert('เปลี่ยนรหัสผ่านเรียบร้อยแล้ว');
+                
+            } catch (error) {
+                console.error('Error changing password:', error);
+                alert(`ไม่สามารถเปลี่ยนรหัสผ่านได้: ${error.message}. กรุณาตรวจสอบรหัสผ่านปัจจุบันและลองใหม่อีกครั้ง`);
+            }
+        }
+
+        // ลบข้อมูลทั้งหมด (Backend ไม่มี Endpoint /user/delete-data)
+        async function deleteAllData() {
+            alert('ฟีเจอร์การลบข้อมูลทั้งหมดยังไม่มี Endpoint ที่รองรับใน Backend. ไม่สามารถดำเนินการได้.');
+            closeModal('deleteDataModal');
+        }
+
+        // ลบบัญชี (Backend ไม่มี Endpoint /user/delete-account)
+        async function deleteAccount() {
+            alert('ฟีเจอร์การลบบัญชียังไม่มี Endpoint ที่รองรับใน Backend. ไม่สามารถดำเนินการได้.');
+            closeModal('deleteAccountModal');
+        }
+
+        // ปิดใช้งานบัญชีชั่วคราว (Backend ไม่มี Endpoint นี้)
+        function showDeactivateAccountModal() {
+            alert('ฟีเจอร์นี้ยังไม่เปิดให้ใช้งานและยังไม่มี Endpoint ใน Backend');
+        }
+
+        // แสดง Modal อุปกรณ์
+        function showDevicesModal() {
+            loadDevices(); // โหลดข้อมูลอุปกรณ์ทุกครั้งที่เปิด Modal
+            document.getElementById('devicesModal').style.display = 'flex';
+        }
+
+        // แสดง Modal เปลี่ยนอีเมล
+        function showChangeEmailModal() {
+            document.getElementById('changeEmailModal').style.display = 'flex';
+        }
+
+        // แสดง Modal เปลี่ยนรหัสผ่าน
+        function showChangePasswordModal() {
+            document.getElementById('changePasswordForm').reset();
+            document.getElementById('changePasswordModal').style.display = 'flex';
+        }
+
+        // แสดง Modal ลบข้อมูล
+        function showDeleteDataModal() {
+            document.getElementById('deleteDataForm').reset();
+            document.getElementById('deleteDataModal').style.display = 'flex';
+        }
+
+        // แสดง Modal ลบบัญชี
+        function showDeleteAccountModal() {
+            document.getElementById('deleteAccountForm').reset();
+            document.getElementById('delete-account-reason-other').style.display = 'none';
+            document.getElementById('deleteAccountModal').style.display = 'flex';
+        }
+
+        // ปิด Modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // เลือกธีม
+        function selectTheme(theme) {
+            currentTheme = theme;
+            document.querySelectorAll('.theme-option').forEach(option => {
+                if (option.getAttribute('data-theme') === theme) {
+                    option.classList.add('active');
+                } else {
+                    option.classList.remove('active');
+                }
+            });
+            // การเปลี่ยนสีจริงต้องทำผ่าน CSS variable หรือ class ที่เหมาะสม
+            // ตัวอย่าง: document.documentElement.style.setProperty('--primary', 'your_theme_color');
+        }
+
+        // อัปเดตตัวอย่างขนาดตัวอักษร
+        function updateFontSizeDemo() {
+            const fontSize = document.getElementById('font-size').value;
+            const demo = document.getElementById('font-size-demo');
+            
+            switch (fontSize) {
+                case 'small':
+                    demo.style.fontSize = '14px';
+                    break;
+                case 'medium':
+                    demo.style.fontSize = '16px';
+                    break;
+                case 'large':
+                    demo.style.fontSize = '18px';
+                    break;
+                case 'x-large':
+                    demo.style.fontSize = '20px';
+                    break;
+            }
+        }
+
+        // บันทึกการตั้งค่าทั่วไป
+        async function saveGeneralSettings() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            const language = document.getElementById('language-select').value;
+            const timeZone = document.getElementById('time-format').value === '24h' ? 'Asia/Bangkok (24h)' : 'Asia/Bangkok (12h)'; // 🚨 Backend มีแค่ time_zone
+            const defaultView = document.getElementById('default-chart-type').value; // 🚨 default_view ถูกใช้ใน Display Settings
+            // Backend ไม่มี date_format, week_start, iop_unit โดยตรงใน UserSettings
+            // หากต้องการเก็บค่าเหล่านี้ ต้องเพิ่มคอลัมน์ในตาราง UserSettings ของ DB และ Backend
+            
+            try {
+                // 🚨 Endpoint คือ /api/patient/settings
+                const response = await fetch(`${API_BASE_URL}/patient/settings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        language: language,
+                        time_zone: timeZone, // 🚨 ส่ง time_zone แทน time_format
+                        // default_view: defaultView // 🚨 อันนี้ควรอยู่ใน Display Settings
+                        // date_format: dateFormat, // Backend ไม่มี field นี้
+                        // week_start: weekStart,   // Backend ไม่มี field นี้
+                        // iop_unit: iopUnit        // Backend ไม่มี field นี้
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to save general settings');
+                }
+                
+                showSuccessAlert();
+                await loadSettings(); // โหลด settings ใหม่เพื่ออัปเดต UI
+                
+            } catch (error) {
+                console.error('Error saving general settings:', error);
+                alert(`ไม่สามารถบันทึกการตั้งค่าทั่วไปได้: ${error.message}. กรุณาลองใหม่อีกครั้ง`);
+            }
+        }
+
+        // บันทึกการตั้งค่าการแสดงผล
+        async function saveDisplaySettings() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            // Backend's UserSettings table has `theme`, `font_size`, `default_view`
+            // But not `dark_mode`, `trend_line`, `normal_range` directly.
+            // These would typically be part of `privacy_settings` or `notification_preferences` if stored as JSON,
+            // or separate columns in UserSettings.
+            // For now, mapping to existing backend fields where possible, or noting missing fields.
+            const theme = currentTheme; // Current selected theme
+            const darkMode = document.getElementById('dark-mode').checked; // Not directly in DB, needs custom handling or new column
+            const fontSize = document.getElementById('font-size').value;
+            const trendLine = document.getElementById('trend-line').checked; // Not directly in DB
+            const normalRange = document.getElementById('normal-range').checked; // Not directly in DB
+            const defaultView = document.getElementById('default-chart-type').value; // Maps to default_view in DB
+            
+            try {
+                // 🚨 Endpoint คือ /api/patient/settings
+                const response = await fetch(`${API_BASE_URL}/patient/settings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        theme: theme,
+                        font_size: fontSize,
+                        default_view: defaultView,
+                        // `dark_mode`, `trend_line`, `normal_range` are not direct columns in UserSettings
+                        // If you need to save these, they should be part of a JSON column like `privacy_settings`
+                        // or new columns in UserSettings.
+                        // Example if storing as JSON:
+                        // privacy_settings: JSON.stringify({
+                        //     dark_mode: darkMode,
+                        //     trend_line: trendLine,
+                        //     normal_range: normalRange
+                        // })
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to save display settings');
+                }
+                
+                showSuccessAlert();
+                await loadSettings(); // โหลด settings ใหม่เพื่ออัปเดต UI
+                
+            } catch (error) {
+                console.error('Error saving display settings:', error);
+                alert(`ไม่สามารถบันทึกการตั้งค่าการแสดงผลได้: ${error.message}. กรุณาลองใหม่อีกครั้ง`);
+            }
+        }
+
+        // บันทึกการตั้งค่าการแจ้งเตือน
+        async function saveNotificationSettings() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            const notificationSettingsData = {
+                enabled: document.getElementById('notifications-enabled').checked,
+                medication: {
+                    enabled: document.getElementById('medication-reminders').checked,
+                    reminder_time: parseInt(document.getElementById('medication-reminder-time').value),
+                    repeat_interval: parseInt(document.getElementById('medication-reminder-repeat').value),
+                    max_repeats: parseInt(document.getElementById('medication-reminder-max-repeat').value)
+                },
+                appointment: {
+                    enabled: document.getElementById('appointment-reminders').checked,
+                    days_before: parseInt(document.getElementById('appointment-reminder-days').value),
+                    remind_on_day: document.getElementById('appointment-reminder-day-of').checked
+                },
+                iop_alerts: document.getElementById('iop-alerts').checked,
+                iop_alert_threshold: parseInt(document.getElementById('iop-alert-threshold').value),
+                medication_inventory_alerts: document.getElementById('medication-inventory-alerts').checked,
+                new_results_alerts: document.getElementById('new-results-alerts').checked
+            };
+            
+            try {
+                // 🚨 Endpoint คือ /api/patient/settings
+                const response = await fetch(`${API_BASE_URL}/patient/settings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        // notification_preferences เป็น TEXT ใน DB, ต้องเก็บเป็น JSON stringify
+                        notification_preferences: JSON.stringify(notificationSettingsData) 
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to save notification settings');
+                }
+                
+                showSuccessAlert();
+                await loadSettings(); // โหลด settings ใหม่เพื่ออัปเดต UI
+                
+            } catch (error) {
+                console.error('Error saving notification settings:', error);
+                alert(`ไม่สามารถบันทึกการตั้งค่าการแจ้งเตือนได้: ${error.message}. กรุณาลองใหม่อีกครั้ง`);
+            }
+        }
+
+        // บันทึกการตั้งค่าข้อมูลและความเป็นส่วนตัว
+        async function saveDataSettings() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            const privacySettingsData = {
+                auto_sync: document.getElementById('auto-sync').checked,
+                cellular_sync: document.getElementById('cellular-sync').checked,
+                share_with_doctor: document.getElementById('share-with-doctor').checked,
+                share_for_research: document.getElementById('share-for-research').checked
+            };
+            
+            try {
+                // 🚨 Endpoint คือ /api/patient/settings
+                const response = await fetch(`${API_BASE_URL}/patient/settings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        // privacy_settings เป็น TEXT ใน DB, ต้องเก็บเป็น JSON stringify
+                        privacy_settings: JSON.stringify(privacySettingsData)
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to save data privacy settings');
+                }
+                
+                showSuccessAlert();
+                await loadSettings(); // โหลด settings ใหม่เพื่ออัปเดต UI
+                
+            } catch (error) {
+                console.error('Error saving data privacy settings:', error);
+                alert(`ไม่สามารถบันทึกการตั้งค่าข้อมูลและความเป็นส่วนตัวได้: ${error.message}. กรุณาลองใหม่อีกครั้ง`);
+            }
+        }
+
+        // แสดงข้อความสำเร็จ
+        function showSuccessAlert() {
+            const successAlert = document.getElementById('saveSuccess');
+            successAlert.style.display = 'flex';
+            
+            setTimeout(() => {
+                successAlert.style.display = 'none';
+            }, 3000);
+        }
+
+        // แสดงข้อความแจ้งเตือนความผิดพลาด API
+        function showApiError(message) {
+            const apiError = document.getElementById('apiError');
+            const apiErrorMessage = document.getElementById('apiErrorMessage');
+            
+            apiErrorMessage.textContent = message;
+            apiError.style.display = 'flex';
+        }
+
+        // ซ่อนข้อความแจ้งเตือนความผิดพลาด API
+        function hideApiError() {
+            document.getElementById('apiError').style.display = 'none';
+        }
+
+        // สลับการแสดงผลเมนูผู้ใช้
+        function toggleUserMenu() {
+            document.getElementById('userMenu').classList.toggle('show');
+        }
+
+        // สลับการแสดงผล Sidebar (สำหรับมือถือ)
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // แปลงวันที่และเวลาเป็นรูปแบบไทย
+        function formatThaiDateTime(date) {
+            if (!date) return '-';
+            
+            const day = date.getDate();
+            const month = date.getMonth();
+            const monthNames = [
+                'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+                'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+            ];
+            const year = date.getFullYear() + 543; // แปลงเป็น พ.ศ.
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            
+            return `${day} ${monthNames[month]} ${year} ${hours}:${minutes}`;
+        }
+
+        // Logout function
+        function logout() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            fetch(`${API_BASE_URL}/auth/logout`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(() => {
+                localStorage.removeItem('gtms_token');
+                localStorage.removeItem('gtms_user');
+                window.location.href = 'index.html';
+            })
+            .catch(error => {
+                console.error('Logout error:', error);
+                // Force logout even if API fails
+                localStorage.removeItem('gtms_token');
+                localStorage.removeItem('gtms_user');
+                window.location.href = 'index.html';
+            });
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // ตรวจสอบการเข้าสู่ระบบ
+            if (!checkAuth()) {
+                return;
+            }
+            
+            // โหลดข้อมูลผู้ใช้งาน
+            loadUserProfile();
+            
+            // Event listener สำหรับเหตุผลการลบบัญชี
+            document.getElementById('delete-account-reason').addEventListener('change', function() {
+                const reasonOther = document.getElementById('delete-account-reason-other');
+                if (this.value === 'other') {
+                    reasonOther.style.display = 'block';
+                } else {
+                    reasonOther.style.display = 'none';
+                }
+            });
+            
+            // อัปเดตตัวอย่างขนาดตัวอักษรเมื่อโหลดหน้า
+            updateFontSizeDemo();
+            
+            // ตรวจสอบการคลิกนอก dropdown เพื่อปิด
+            document.addEventListener('click', function(event) {
+                const userMenu = document.getElementById('userMenu');
+                const userDropdown = document.querySelector('.user-dropdown');
+                
+                if (userMenu && userMenu.classList.contains('show') && userDropdown && !userDropdown.contains(event.target)) {
+                    userMenu.classList.remove('show');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

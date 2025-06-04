@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTMS - Glaucoma Treatment Monitoring System</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00A8A8;
+            --secondary: #00CECE;
+            --dark: #324047;
+            --light: #EFEFEF;
+            --white: #FFFFFF;
+            --accent: #00E5E5;
+            --glass: rgba(255, 255, 255, 0.95);
+            --success: #4CAF50;
+            --error: #f44336;
+            --warning: #ff9800;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Elegant Background */
+        .background-design {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .gradient-orbs {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+            animation: orbFloat 20s ease-in-out infinite;
+        }
+
+        .orb:nth-child(1) {
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            top: -300px;
+            left: -300px;
+        }
+
+        .orb:nth-child(2) {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            bottom: -200px;
+            right: -200px;
+            animation-delay: -5s;
+        }
+
+        .orb:nth-child(3) {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -10s;
+        }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(50px, -50px); }
+            50% { transform: translate(-30px, 30px); }
+            75% { transform: translate(-50px, -30px); }
+        }
+
+        /* Main Container */
+        .login-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Logo Section */
+        .logo-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: var(--white);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            opacity: 0.1;
+        }
+
+        .logo-icon {
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .brand-tagline {
+            font-size: 16px;
+            color: #6c757d;
+            font-weight: 400;
+        }
+
+        /* Login Card */
+        .login-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 48px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .login-subtitle {
+            font-size: 15px;
+            color: #6c757d;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-size: 18px;
+            pointer-events: none;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px 20px 16px 48px;
+            border: 1px solid #dee2e6;
+            border-radius: 16px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: var(--white);
+            color: var(--dark);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(0, 168, 168, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #adb5bd;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6c757d;
+            font-size: 18px;
+            transition: color 0.3s ease;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary);
+        }
+
+        /* Login Options */
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .checkbox-label {
+            font-size: 14px;
+            color: var(--dark);
+            cursor: pointer;
+        }
+
+        .forgot-password {
+            font-size: 14px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .forgot-password:hover {
+            color: var(--secondary);
+        }
+
+        .forgot-password::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--secondary);
+            transition: width 0.3s ease;
+        }
+
+        .forgot-password:hover::after {
+            width: 100%;
+        }
+
+        /* Form Validation */
+        .form-group.error .form-input {
+            border-color: var(--error);
+        }
+
+        .error-message {
+            color: var(--error);
+            font-size: 13px;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .form-group.error .error-message {
+            display: block;
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 16px;
+            margin-bottom: 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+        }
+
+        .alert.success {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .alert.error {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+
+        .alert.warning {
+            background-color: rgba(255, 152, 0, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(255, 152, 0, 0.3);
+        }
+
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1000;
+            display: none;
+        }
+
+        .connection-status.connected {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .connection-status.disconnected {
+            background: rgba(244, 67, 54, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+
+        /* Submit Button States */
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--white);
+            border: none;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 168, 168, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .submit-btn .button-text {
+            transition: opacity 0.3s ease;
+        }
+
+        .submit-btn.loading .button-text {
+            opacity: 0;
+        }
+
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: var(--white);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .submit-btn.loading .loading-spinner {
+            opacity: 1;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .submit-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -100%;
+            width: 100%;
+            height: 200%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: translateY(-50%);
+            transition: all 0.6s;
+        }
+
+        .submit-btn:hover::after {
+            left: 100%;
+        }
+
+        /* Register Section */
+        .register-section {
+            text-align: center;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .register-text {
+            font-size: 15px;
+            color: #6c757d;
+            margin-bottom: 12px;
+        }
+
+        .register-link {
+            display: inline-block;
+            padding: 12px 32px;
+            background: transparent;
+            border: 2px solid var(--primary);
+            border-radius: 16px;
+            color: var(--primary);
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .register-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            transition: all 0.3s ease;
+            z-index: -1;
+        }
+
+        .register-link:hover {
+            color: var(--white);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 168, 168, 0.2);
+        }
+
+        .register-link:hover::before {
+            left: 0;
+        }
+
+        /* Security Notice */
+        .security-notice {
+            text-align: center;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .security-icon {
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .login-card {
+                padding: 32px 24px;
+            }
+            
+            .brand-name {
+                font-size: 24px;
+            }
+            
+            .login-title {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Connection Status Indicator -->
+    <div id="connectionStatus" class="connection-status">
+        ตรวจสอบการเชื่อมต่อ...
+    </div>
+
+    <div class="background-design">
+        <div class="gradient-orbs">
+            <div class="orb"></div>
+            <div class="orb"></div>
+            <div class="orb"></div>
+        </div>
+    </div>
+
+    <div class="login-wrapper">
+        <div class="logo-section">
+            <div class="logo">
+                <span class="logo-icon">👁️</span>
+            </div>
+            <h1 class="brand-name">GTMS</h1>
+            <p class="brand-tagline">ระบบติดตามการรักษาผู้ป่วยโรคต้อหิน</p>
+        </div>
+
+        <div class="login-card">
+            <div class="login-header">
+                <h2 class="login-title">เข้าสู่ระบบ</h2>
+                <p class="login-subtitle">Glaucoma Treatment Monitoring System</p>
+            </div>
+
+            <div id="alertMessage" class="alert"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">เลขบัตรประชาชน / Username</label>
+                    <div class="input-group">
+                        <span class="input-icon">🪪</span>
+                        <input type="text" class="form-input" id="username" placeholder="ระบุเลขบัตรประชาชนหรือ Username" required>
+                    </div>
+                    <div class="error-message">กรุณากรอกเลขบัตรประชาชนหรือ Username</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">รหัสผ่าน</label>
+                    <div class="input-group">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" class="form-input" id="password" placeholder="กรอกรหัสผ่านของคุณ" required>
+                        <span class="password-toggle" onclick="togglePassword()">👁️</span>
+                    </div>
+                    <div class="error-message">กรุณากรอกรหัสผ่าน</div>
+                </div>
+
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" class="checkbox" id="rememberMe">
+                        <span class="checkbox-label">จดจำการเข้าสู่ระบบ</span>
+                    </label>
+                    <a href="forgot-password.html" class="forgot-password">ลืมรหัสผ่าน?</a>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <span class="button-text">เข้าสู่ระบบ</span>
+                    <div class="loading-spinner"></div>
+                </button>
+            </form>
+
+            <div class="register-section">
+                <p class="register-text">ยังไม่มีบัญชีใช่ไหม?</p>
+                <a href="registration.html" class="register-link">ลงทะเบียนเข้าใช้งาน</a>
+            </div>
+
+            <div class="security-notice">
+                <div class="security-badge">
+                    <span class="security-icon">📞</span>
+                    หากเกิดข้อผิดพลาดกรุณาติดต่อ 02-123-4567
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // 🔧 API Configuration - ตรงกับ Backend ที่ Port 5001
+    const API_BASE_URL = 'http://localhost:5001/api';
+    
+    // Global variables for connection monitoring
+    let isConnected = false;
+    let connectionCheckInterval;
+    
+    // 🔧 Show connection status
+    function showConnectionStatus(status, message) {
+        const statusDiv = document.getElementById('connectionStatus');
+        statusDiv.textContent = message;
+        statusDiv.className = `connection-status ${status}`;
+        statusDiv.style.display = 'block';
+        
+        if (status === 'connected') {
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+        }
+    }
+    
+    // 🔧 Test API connection - ตรงกับ Backend Endpoints
+    async function testConnection() {
+        console.log('🔍 Testing API connection to:', API_BASE_URL);
+        try {
+            const response = await fetch(`${API_BASE_URL}/health`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                // Remove credentials for health check
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ API Health Check Success:', data);
+                isConnected = true;
+                showConnectionStatus('connected', '✅ เชื่อมต่อเซิร์ฟเวอร์สำเร็จ');
+                return true;
+            } else {
+                throw new Error(`HTTP ${response.status}`);
+            }
+        } catch (error) {
+            console.error('❌ API Connection test failed:', error);
+            isConnected = false;
+            showConnectionStatus('disconnected', '❌ ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+            return false;
+        }
+    }
+    
+    // 🔧 Monitor connection periodically
+    function startConnectionMonitoring() {
+        connectionCheckInterval = setInterval(async () => {
+            if (!isConnected) {
+                await testConnection();
+            }
+        }, 10000); // Check every 10 seconds if disconnected
+    }
+    
+    // Toggle password visibility
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.querySelector('.password-toggle');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.textContent = '🙈';
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.textContent = '👁️';
+        }
+    }
+
+    // Show/hide alert message
+    function showAlert(message, type) {
+        const alertDiv = document.getElementById('alertMessage');
+        alertDiv.textContent = message;
+        alertDiv.className = `alert ${type}`;
+        alertDiv.style.display = 'block';
+        
+        setTimeout(() => {
+            alertDiv.style.display = 'none';
+        }, 5000);
+    }
+
+    // Form validation
+    function validateField(input) {
+        const formGroup = input.closest('.form-group');
+        
+        if (input.value.trim() === '') {
+            formGroup.classList.add('error');
+            return false;
+        } else {
+            formGroup.classList.remove('error');
+            return true;
+        }
+    }
+
+    // Thai National ID validation (ตรงกับ Backend)
+    function validateThaiIdCard(idCard) {
+        if (!/^\d{13}$/.test(idCard)) return false;
+        let sum = 0;
+        for (let i = 0; i < 12; i++) {
+            sum += parseInt(idCard.charAt(i)) * (13 - i);
+        }
+        const checkDigit = (11 - (sum % 11)) % 10;
+        return checkDigit === parseInt(idCard.charAt(12));
+    }
+
+    // Real-time validation
+    document.querySelectorAll('.form-input').forEach(input => {
+        input.addEventListener('blur', () => validateField(input));
+        input.addEventListener('input', () => {
+            if (input.closest('.form-group').classList.contains('error')) {
+                validateField(input);
+            }
+        });
+    });
+
+    // Check for saved credentials
+    window.addEventListener('load', async () => {
+        // Test connection on load
+        await testConnection();
+        startConnectionMonitoring();
+        
+        // Load saved credentials
+        const savedUsername = localStorage.getItem('gtms_username');
+        const savedRemember = localStorage.getItem('gtms_remember');
+        
+        if (savedUsername && savedRemember === 'true') {
+            document.getElementById('username').value = savedUsername;
+            document.getElementById('rememberMe').checked = true;
+        }
+        
+        // Check if already logged in
+        const token = localStorage.getItem('gtms_token');
+        if (token) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('👤 User already logged in:', data.user);
+                    
+                    // Redirect to appropriate dashboard
+                    const role = data.user?.role || 'patient';
+                    redirectToDashboard(role);
+                }
+            } catch (error) {
+                console.log('🔓 No valid session found');
+                localStorage.removeItem('gtms_token');
+                localStorage.removeItem('gtms_user');
+            }
+        }
+    });
+    
+    // 🔧 Dashboard redirection based on role
+   function redirectToDashboard(role) {
+        console.log('🔀 Redirecting user with role:', role);
+        
+        localStorage.setItem('gtms_current_role', role); // เก็บ role ปัจจุบันไว้เผื่อใช้
+        
+        // แสดง Alert ก่อน redirect (ถ้าต้องการ)
+        // showAlert(`เข้าสู่ระบบสำเร็จ! กำลังนำท่านไปยัง Dashboard...`, 'success');
+
+        // **แก้ไขส่วนนี้:** เปลี่ยนหน้าไปยัง dashboard.html (หรือตาม role ถ้ามี)
+        // ในที่นี้จะ redirect ไปที่ dashboard.html โดยตรงก่อน
+        // หากคุณมีหน้า dashboard แยกตาม role ค่อยปรับ logic ตรงนี้
+        
+        // หน่วงเวลาเล็กน้อยเพื่อให้ผู้ใช้เห็นข้อความ (ถ้ามี showAlert) แล้วค่อย redirect
+        setTimeout(() => {
+            // ตรวจสอบว่าผู้ใช้มี role หรือไม่ ถ้าไม่มีอาจจะ default ไปหน้าผู้ป่วย
+            const targetDashboard = 'dashboard.html'; // Default dashboard
+
+            // ตัวอย่างการ redirect ตาม role (ถ้าคุณสร้างหน้าแยกไว้)
+            /*
+            switch(role) {
+                case 'patient': 
+                    window.location.href = 'patient-dashboard.html'; 
+                    break;
+                case 'doctor': 
+                    window.location.href = 'doctor-dashboard.html'; 
+                    break;
+                case 'nurse': 
+                    window.location.href = 'nurse-dashboard.html'; 
+                    break;
+                case 'admin': 
+                    window.location.href = 'admin-dashboard.html'; 
+                    break;
+                default: 
+                    window.location.href = targetDashboard; // ไปที่ default dashboard
+            }
+            */
+
+            // สำหรับตอนนี้ ให้ redirect ไปที่ dashboard.html โดยตรง
+            console.log(`Attempting to redirect to: ${targetDashboard}`);
+            window.location.href = targetDashboard;
+
+        }, 1000); // หน่วงเวลา 1 วินาที (1000ms) ก่อน redirect, ปรับได้ตามความเหมาะสม
+    }
+
+
+    // 🔧 Login form submission - ปรับให้ตรงกับ Backend API
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!isConnected) {
+            const connected = await testConnection();
+            if (!connected) {
+                showAlert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบการเชื่อมต่อ', 'error');
+                return;
+            }
+        }
+        
+        const usernameInput = document.getElementById('username'); // เปลี่ยนชื่อตัวแปรเพื่อไม่ให้ซ้ำกับ global username
+        const passwordInput = document.getElementById('password'); // เปลี่ยนชื่อตัวแปร
+        const rememberMe = document.getElementById('rememberMe').checked;
+        const submitBtn = document.querySelector('.submit-btn');
+        const buttonText = submitBtn.querySelector('.button-text');
+        
+        let isValid = true;
+        isValid = validateField(usernameInput) && isValid;
+        isValid = validateField(passwordInput) && isValid;
+        
+        if (isValid && /^\d{13}$/.test(usernameInput.value) && !validateThaiIdCard(usernameInput.value)) {
+            const formGroup = usernameInput.closest('.form-group');
+            formGroup.classList.add('error');
+            const errorMessageElement = formGroup.querySelector('.error-message'); // เปลี่ยนชื่อตัวแปร
+            if (errorMessageElement) errorMessageElement.textContent = 'เลขบัตรประชาชนไม่ถูกต้อง';
+            isValid = false;
+        }
+        
+        if (isValid) {
+            submitBtn.classList.add('loading');
+            
+            console.log('🚀 Sending login request to:', `${API_BASE_URL}/auth/login`);
+            console.log('📤 Request data:', {
+                username: usernameInput.value, // ใช้ usernameInput
+                password: '***hidden***'
+            });
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include', 
+                    body: JSON.stringify({
+                        username: usernameInput.value, // ใช้ usernameInput
+                        password: passwordInput.value  // ใช้ passwordInput
+                    })
+                });
+                
+                console.log('📥 Response status:', response.status);
+                
+                const data = await response.json();
+                console.log('📥 Response data:', {
+                    ...data,
+                    token: data.token ? '***hidden***' : undefined
+                });
+                
+                if (response.ok && data.message === 'Login successful' && data.user) { // ตรวจสอบ data.user ด้วย
+                    // Success
+                    if(buttonText) buttonText.textContent = 'กำลังเข้าสู่ระบบ...';
+                    
+                    localStorage.setItem('gtms_token', data.token);
+                    localStorage.setItem('gtms_refresh_token', data.refreshToken);
+                    localStorage.setItem('gtms_user', JSON.stringify(data.user)); // ตรวจสอบว่า data.user มีข้อมูลที่ต้องการ
+                    localStorage.setItem('gtms_session_id', data.sessionId);
+                    localStorage.setItem('gtms_token_expires', data.expiresAt);
+                    
+                    if (rememberMe) {
+                        localStorage.setItem('gtms_username', usernameInput.value); // ใช้ usernameInput
+                        localStorage.setItem('gtms_remember', 'true');
+                    } else {
+                        localStorage.removeItem('gtms_username');
+                        localStorage.removeItem('gtms_remember');
+                    }
+                    
+                    setTimeout(() => {
+                        if(buttonText) buttonText.textContent = 'เข้าสู่ระบบสำเร็จ!';
+                        showAlert('เข้าสู่ระบบสำเร็จ! กำลังนำท่านไปยังแดชบอร์ด...', 'success');
+                        
+                        setTimeout(() => {
+                            redirectToDashboard(data.user.role || 'patient'); // ส่ง role ไปให้ฟังก์ชัน redirect
+                        }, 1500); // หน่วงเวลารวมก่อน redirect
+                    }, 500); // หน่วงเวลาสั้นๆ ให้เห็น "กำลังเข้าสู่ระบบ"
+                    
+                } else {
+                    let errorMessageText = 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ'; // เปลี่ยนชื่อตัวแปร
+                    
+                    switch(data.code) {
+                        case 'MISSING_CREDENTIALS':
+                            errorMessageText = 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน';
+                            break;
+                        case 'INVALID_CREDENTIALS':
+                            errorMessageText = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+                            break;
+                        case 'ACCOUNT_INACTIVE':
+                            errorMessageText = 'บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ';
+                            break;
+                        case 'ACCOUNT_LOCKED':
+                            const retryMinutes = Math.ceil((data.retryAfter || 1800) / 60);
+                            errorMessageText = `บัญชีถูกล็อค กรุณาลองใหม่ในอีก ${retryMinutes} นาที`;
+                            break;
+                        case 'INVALID_PASSWORD':
+                            const attemptsLeft = data.attemptsRemaining || 0;
+                            errorMessageText = attemptsLeft > 0 ? `รหัสผ่านไม่ถูกต้อง (เหลือ ${attemptsLeft} ครั้ง)` : 'รหัสผ่านไม่ถูกต้อง บัญชีถูกล็อคเป็นเวลา 30 นาที';
+                            break;
+                        default:
+                            errorMessageText = data.message || 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ';
+                    }
+                    
+                    throw new Error(errorMessageText);
+                }
+                
+            } catch (error) {
+                console.error('❌ Login error:', error);
+                
+                submitBtn.classList.remove('loading');
+                if(buttonText) buttonText.textContent = 'เข้าสู่ระบบ';
+                
+                let displayErrorMessageText = 'เกิดข้อผิดพลาดในการเชื่อมต่อ'; // เปลี่ยนชื่อตัวแปร
+                
+                if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                    displayErrorMessageText = 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต';
+                    isConnected = false;
+                    showConnectionStatus('disconnected', '❌ สูญเสียการเชื่อมต่อ');
+                } else {
+                    displayErrorMessageText = error.message || displayErrorMessageText;
+                }
+                
+                showAlert(displayErrorMessageText, 'error');
+            }
+        }
+    });
+
+    // 🔧 Auto-refresh token before expiration
+    function setupTokenRefresh() {
+        const token = localStorage.getItem('gtms_token');
+        const expiresAt = localStorage.getItem('gtms_token_expires');
+        
+        if (token && expiresAt) {
+            const expiryTime = new Date(expiresAt).getTime();
+            const currentTime = new Date().getTime();
+            const timeUntilExpiry = expiryTime - currentTime;
+            
+            // Refresh token 5 minutes before expiry
+            const refreshTime = timeUntilExpiry - (5 * 60 * 1000);
+            
+            if (refreshTime > 0) {
+                setTimeout(async () => {
+                    await refreshAuthToken();
+                }, refreshTime);
+            }
+        }
+    }
+    
+    // 🔧 Refresh authentication token
+    async function refreshAuthToken() {
+        const refreshToken = localStorage.getItem('gtms_refresh_token');
+        
+        if (!refreshToken) {
+            console.log('🔓 No refresh token available');
+            return false;
+        }
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    refreshToken: refreshToken
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem('gtms_token', data.token);
+                localStorage.setItem('gtms_token_expires', data.expiresAt);
+                
+                console.log('✅ Token refreshed successfully');
+                setupTokenRefresh(); // Setup next refresh
+                return true;
+            } else {
+                throw new Error('Token refresh failed');
+            }
+        } catch (error) {
+            console.error('❌ Token refresh error:', error);
+            
+            // Clear invalid tokens
+            localStorage.removeItem('gtms_token');
+            localStorage.removeItem('gtms_refresh_token');
+            localStorage.removeItem('gtms_user');
+            localStorage.removeItem('gtms_session_id');
+            localStorage.removeItem('gtms_token_expires');
+            
+            return false;
+        }
+    }
+    
+    // 🔧 Logout function for future use
+    async function logout() {
+        const token = localStorage.getItem('gtms_token');
+        
+        try {
+            if (token) {
+                await fetch(`${API_BASE_URL}/auth/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Logout API error:', error);
+        } finally {
+            // Clear all stored data
+            localStorage.removeItem('gtms_token');
+            localStorage.removeItem('gtms_refresh_token');
+            localStorage.removeItem('gtms_user');
+            localStorage.removeItem('gtms_session_id');
+            localStorage.removeItem('gtms_token_expires');
+            localStorage.removeItem('gtms_current_role');
+            
+            // Redirect to login page
+            window.location.href = 'login.html';
+        }
+    }
+    
+    // 🔧 API Request helper with automatic token refresh
+    async function makeAuthenticatedRequest(url, options = {}) {
+        let token = localStorage.getItem('gtms_token');
+        
+        if (!token) {
+            throw new Error('No authentication token');
+        }
+        
+        // Add authorization header
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            ...options.headers
+        };
+        
+        try {
+            const response = await fetch(url, {
+                ...options,
+                headers
+            });
+            
+            // If token expired, try to refresh
+            if (response.status === 401) {
+                const refreshed = await refreshAuthToken();
+                if (refreshed) {
+                    // Retry with new token
+                    const newToken = localStorage.getItem('gtms_token');
+                    headers['Authorization'] = `Bearer ${newToken}`;
+                    
+                    return await fetch(url, {
+                        ...options,
+                        headers
+                    });
+                } else {
+                    // Refresh failed, redirect to login
+                    await logout();
+                    return null;
+                }
+            }
+            
+            return response;
+        } catch (error) {
+            console.error('Authenticated request error:', error);
+            throw error;
+        }
+    }
+    
+    // 🔧 Form keyboard navigation
+    document.getElementById('loginForm').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const inputs = this.querySelectorAll('.form-input');
+            const currentIndex = Array.from(inputs).findIndex(input => input === document.activeElement);
+            
+            if (currentIndex >= 0 && currentIndex < inputs.length - 1) {
+                // Move to next field
+                e.preventDefault();
+                inputs[currentIndex + 1].focus();
+            } else if (currentIndex === inputs.length - 1) {
+                // Submit form on last field
+                this.dispatchEvent(new Event('submit'));
+            }
+        }
+    });
+    
+    // 🔧 Password strength indicator (for future registration page)
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        const checks = {
+            length: password.length >= 8,
+            lowercase: /[a-z]/.test(password),
+            uppercase: /[A-Z]/.test(password),
+            numbers: /\d/.test(password),
+            special: /[^A-Za-z0-9]/.test(password)
+        };
+        
+        strength = Object.values(checks).filter(Boolean).length;
+        
+        return {
+            score: strength,
+            checks: checks,
+            level: strength < 3 ? 'weak' : strength < 4 ? 'medium' : 'strong'
+        };
+    }
+    
+    // 🔧 Input formatting for National ID
+    document.getElementById('username').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+        
+        // Format as National ID if it's all numbers and length > 10
+        if (value.length > 10 && value.length <= 13) {
+            // Format: X-XXXX-XXXXX-XX-X
+            value = value.replace(/(\d{1})(\d{4})(\d{5})(\d{2})(\d{1})/, '$1-$2-$3-$4-$5');
+        }
+        
+        // Don't update if user is typing non-numeric username
+        if (!/^\d/.test(e.target.value) && e.target.value.length > 0) {
+            return; // Allow custom usernames
+        }
+        
+        if (value !== e.target.value && /^\d/.test(e.target.value)) {
+            e.target.value = value;
+        }
+    });
+    
+    // 🔧 Setup token refresh on page load
+    window.addEventListener('load', () => {
+        setupTokenRefresh();
+    });
+    
+    // 🔧 Handle visibility change (tab switching)
+    document.addEventListener('visibilitychange', async () => {
+        if (!document.hidden && isConnected === false) {
+            // Check connection when tab becomes visible
+            await testConnection();
+        }
+    });
+    
+    // 🔧 Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        if (connectionCheckInterval) {
+            clearInterval(connectionCheckInterval);
+        }
+    });
+    
+    // 🔧 Global error handler for uncaught promises
+    window.addEventListener('unhandledrejection', (event) => {
+        console.error('Unhandled promise rejection:', event.reason);
+        
+        if (event.reason && event.reason.message && event.reason.message.includes('fetch')) {
+            showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง', 'error');
+        }
+        
+        event.preventDefault(); // Prevent default browser error handling
+    });
+    
+    // 🔧 Expose functions for console debugging (development only)
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        window.gtmsDebug = {
+            testConnection,
+            refreshAuthToken,
+            logout,
+            makeAuthenticatedRequest,
+            checkPasswordStrength,
+            validateThaiIdCard,
+            showAlert
+        };
+        console.log('🔧 GTMS Debug functions available in window.gtmsDebug');
+    }
+</script>
+</body>
+</html>

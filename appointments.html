@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>การนัดหมาย - ระบบติดตามการรักษาโรคต้อหิน</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS styles are here */
+        :root {
+            --primary: #00A8A8;
+            --primary-dark: #007878;
+            --primary-light: #E0F2F1;
+            --secondary: #00CECE;
+            --dark: #324047;
+            --gray: #6B7280;
+            --light-gray: #F3F4F6;
+            --white: #FFFFFF;
+            --error: #EF4444;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --info: #3B82F6;
+            --border: #E5E7EB;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background-color: #F9FAFB;
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        /* Layout */
+        .layout {
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background-color: var(--white);
+            height: 100vh;
+            position: fixed;
+            box-shadow: var(--shadow);
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 20;
+            background: var(--primary);
+            color: var(--white);
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        .logo-container {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background-color: var(--primary-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .logo-subtitle {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .menu {
+            padding: 20px 0;
+            overflow-y: auto;
+            max-height: calc(100vh - 91px);
+        }
+
+        .menu-label {
+            padding: 0 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--gray);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        /* Header */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .notifications-btn {
+            background: var(--white);
+            border: 1px solid var(--border);
+            color: var(--gray);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .notifications-indicator {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            background-color: var(--error);
+            border-radius: 50%;
+            border: 2px solid var(--white);
+            display: none;
+        }
+
+        .user-dropdown {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 6px 8px 6px 6px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: var(--primary-light);
+            border-radius: 50%;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card-action {
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* API Error */
+        .api-error {
+            background-color: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            display: none;
+        }
+
+        .api-error-icon {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(239, 68, 68, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--error);
+            flex-shrink: 0;
+        }
+
+        .api-error-content {
+            flex: 1;
+        }
+
+        .api-error-title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .api-error-message {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .api-error-retry {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background-color: var(--error);
+            color: var(--white);
+            transition: all 0.3s ease;
+        }
+
+        .api-error-retry:hover {
+            background-color: #dc2626;
+        }
+
+        /* Appointments */
+        .appointment-month {
+            margin-bottom: 32px;
+        }
+
+        .month-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--primary-light);
+        }
+
+        .appointment-card {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .appointment-card.past {
+            opacity: 0.7;
+        }
+
+        .appointment-card.today {
+            border-left: 4px solid var(--info);
+        }
+
+        .appointment-card.upcoming {
+            border-left: 4px solid var(--success);
+        }
+
+        .appointment-date {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background-color: var(--primary-light);
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .date-day {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .date-month {
+            font-size: 14px;
+            color: var(--primary-dark);
+        }
+
+        .appointment-info {
+            flex: 1;
+            padding: 16px;
+        }
+
+        .appointment-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .appointment-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .appointment-notes {
+            font-size: 14px;
+            background-color: var(--light-gray);
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        .appointment-status {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .appointment-status.past {
+            background-color: var(--light-gray);
+            color: var(--gray);
+        }
+
+        .appointment-status.today {
+            background-color: var(--info);
+            color: var(--white);
+        }
+
+        .appointment-status.upcoming {
+            background-color: var(--success);
+            color: var(--white);
+        }
+
+        .appointment-actions {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px;
+            border-left: 1px solid var(--border);
+        }
+
+        .appointment-btn {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-align: center;
+            min-width: 120px;
+            transition: all 0.3s ease;
+        }
+
+        .appointment-btn.view {
+            background-color: var(--light-gray);
+            color: var(--dark);
+        }
+
+        .appointment-btn.view:hover {
+            background-color: var(--gray);
+            color: var(--white);
+        }
+
+        .appointment-btn.reschedule {
+            background-color: var(--warning);
+            color: var(--white);
+        }
+
+        .appointment-btn.reschedule:hover {
+            opacity: 0.9;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+
+        /* Loading Spinner */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 168, 168, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 16px;
+        }
+
+        .loading-text {
+            font-size: 15px;
+            color: var(--gray);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 500px;
+            background-color: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            font-size: 18px;
+            color: var(--gray);
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background-color: var(--gray);
+            color: var(--white);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .modal-btn.secondary {
+            background-color: var(--light-gray);
+            color: var(--dark);
+        }
+
+        .modal-btn.danger {
+            background-color: var(--error);
+            color: var(--white);
+        }
+
+        /* Detail Styles */
+        .detail-section {
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .detail-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray);
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            color: var(--dark);
+        }
+
+        .detail-value ul {
+            margin-left: 20px;
+        }
+
+        .detail-value li {
+            margin-bottom: 4px;
+        }
+
+        /* Reschedule Form */
+        .appointment-info-container {
+            background-color: var(--primary-light);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .appointment-info-item {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .appointment-info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            font-weight: 600;
+            display: inline-block;
+            width: 80px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--dark);
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 168, 168, 0.1);
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--dark);
+            resize: vertical;
+            min-height: 100px;
+            transition: all 0.3s ease;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 168, 168, 0.1);
+        }
+
+        .form-help {
+            font-size: 13px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding-top: 60px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .appointment-card {
+                flex-direction: column;
+            }
+            
+            .appointment-date {
+                flex-direction: row;
+                min-width: auto;
+                width: 100%;
+                padding: 10px;
+            }
+            
+            .date-day {
+                margin-right: 5px;
+                font-size: 20px;
+            }
+            
+            .appointment-actions {
+                flex-direction: row;
+                border-left: none;
+                border-top: 1px solid var(--border);
+                padding: 10px;
+            }
+            
+            .appointment-btn {
+                flex: 1;
+            }
+            
+            .appointment-status {
+                top: 10px;
+                right: 10px;
+            }
+        }
+        
+        /* User Menu */
+        .user-menu {
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+            width: 200px;
+            z-index: 100;
+            display: none;
+        }
+
+        .user-menu.show {
+            display: block;
+        }
+
+        .user-menu-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-menu-item:hover {
+            background-color: var(--light-gray);
+        }
+
+        .user-menu-logout {
+            color: var(--error);
+        }
+    </style>
+</head>
+<body>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+    
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo-container">
+                <div class="logo">G</div>
+                <div class="logo-text">
+                    <div class="logo-title">GTMS</div>
+                    <div class="logo-subtitle">ระบบติดตามการรักษาโรคต้อหิน</div>
+                </div>
+            </div>
+            
+            <nav class="menu">
+                <p class="menu-label">หน้าหลัก</p>
+                <a href="dashboard.html" class="menu-item">
+                    <div class="menu-icon">📊</div>
+                    แดชบอร์ด
+                </a>
+                <a href="appointments.html" class="menu-item active">
+                    <div class="menu-icon">📅</div>
+                    การนัดหมาย
+                </a>
+                
+                <p class="menu-label">การติดตามการรักษา</p>
+                <a href="iop-tracking.html" class="menu-item">
+                    <div class="menu-icon">👁️</div>
+                    ค่าความดันลูกตา
+                </a>
+                <a href="medications.html" class="menu-item">
+                    <div class="menu-icon">💊</div>
+                    ยาและการรักษา
+                </a>
+                <a href="eye-tests.html" class="menu-item">
+                    <div class="menu-icon">📝</div>
+                    ผลการตรวจวัด
+                </a>
+                
+                <p class="menu-label">อื่นๆ</p>
+                <a href="profile.html" class="menu-item">
+                    <div class="menu-icon">👤</div>
+                    ข้อมูลส่วนตัว
+                </a>
+                <a href="notifications.html" class="menu-item">
+                    <div class="menu-icon">🔔</div>
+                    การแจ้งเตือน
+                </a>
+                <a href="documents.html" class="menu-item">
+                    <div class="menu-icon">📄</div>
+                    เอกสารทางการแพทย์
+                </a>
+                <a href="settings.html" class="menu-item">
+                    <div class="menu-icon">⚙️</div>
+                    ตั้งค่า
+                </a>
+                <a href="#" class="menu-item" onclick="logout()">
+                    <div class="menu-icon">🚪</div>
+                    ออกจากระบบ
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- API Error Display -->
+            <div class="api-error" id="apiError">
+                <div class="api-error-icon">⚠️</div>
+                <div class="api-error-content">
+                    <div class="api-error-title">ไม่สามารถโหลดข้อมูลได้</div>
+                    <div class="api-error-message" id="apiErrorMessage">กรุณาลองใหม่อีกครั้ง</div>
+                </div>
+                <button class="api-error-retry" onclick="loadAppointments()">ลองใหม่</button>
+            </div>
+
+            <div class="content-header">
+                <h1 class="page-title">การนัดหมาย</h1>
+                
+                <div class="user-info">
+                    <button class="notifications-btn" onclick="location.href='notifications.html'">
+                        🔔
+                        <span class="notifications-indicator" id="notificationsIndicator"></span>
+                    </button>
+                    
+                    <div class="user-dropdown" onclick="toggleUserMenu()">
+                        <div class="user-avatar" id="userAvatar">-</div>
+                        <span class="user-name" id="userName">กำลังโหลด...</span>
+                        <span>▼</span>
+                    </div>
+
+                    <!-- User Menu Dropdown -->
+                    <div class="user-menu" id="userMenu">
+                        <a href="profile.html" class="user-menu-item">
+                            <div class="menu-icon">👤</div>
+                            โปรไฟล์
+                        </a>
+                        <a href="settings.html" class="user-menu-item">
+                            <div class="menu-icon">⚙️</div>
+                            ตั้งค่า
+                        </a>
+                        <a href="#" class="user-menu-item user-menu-logout" onclick="logout()">
+                            <div class="menu-icon">🚪</div>
+                            ออกจากระบบ
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Appointments Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">การนัดหมายทั้งหมด</h2>
+                </div>
+                <div class="card-body">
+                    <div id="appointmentsContainer">
+                        <!-- Appointments will be loaded here -->
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div class="empty-state" id="appointmentsEmpty" style="display: none;">
+                        <div class="empty-state-icon">📅</div>
+                        <div class="empty-state-text">ไม่มีการนัดหมาย</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Appointment Detail Modal -->
+    <div class="modal-backdrop" id="appointmentDetailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="appointmentDetailTitle">รายละเอียดการนัดหมาย</h2>
+                <button class="modal-close" onclick="closeModal('appointmentDetailModal')">×</button>
+            </div>
+            <div class="modal-body" id="appointmentDetailBody">
+                <!-- Appointment details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('appointmentDetailModal')">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reschedule Modal -->
+    <div class="modal-backdrop" id="rescheduleModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="rescheduleTitle">ขอเลื่อนการนัดหมาย</h2>
+                <button class="modal-close" onclick="closeModal('rescheduleModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="appointment-info-container" id="rescheduleAppointmentInfo">
+                    <!-- Appointment info will be loaded here -->
+                </div>
+                
+                <form id="rescheduleForm">
+                    <div class="form-group">
+                        <label class="form-label">วันที่ต้องการ (ตัวเลือกที่ 1)</label>
+                        <input type="date" class="form-input" id="preferredDate1" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">วันที่ต้องการ (ตัวเลือกที่ 2, ไม่จำเป็น)</label>
+                        <input type="date" class="form-input" id="preferredDate2">
+                        <div class="form-help">หากวันแรกไม่สะดวกสำหรับทางโรงพยาบาล</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">เหตุผลในการขอเลื่อนนัด</label>
+                        <textarea class="form-textarea" id="rescheduleReason" required placeholder="กรุณาระบุเหตุผลที่ต้องการเลื่อนนัด"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('rescheduleModal')">ยกเลิก</button>
+                <button class="modal-btn primary" id="submitRescheduleBtn" onclick="submitRescheduleRequest()">
+                    <span id="rescheduleSpinner" class="loading-spinner" style="display: none;"></span>
+                    ส่งคำขอ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add JavaScript code directly in the HTML file -->
+    <script>
+    // Configuration
+    const API_BASE_URL = 'http://localhost:5001/api'; // <<--- ตรวจสอบและแก้ไขให้ตรงกับ Backend ของคุณ
+    let patientData = null; // เก็บข้อมูลผู้ใช้ที่ login อยู่ (จาก localStorage หรือ /auth/me)
+    let appointmentsData = []; // เก็บข้อมูลนัดหมายทั้งหมดที่ดึงมา
+    let currentSelectedAppointment = null; // เก็บข้อมูลนัดหมายที่กำลังดูรายละเอียดหรือขอเลื่อน
+
+    // --- ฟังก์ชันพื้นฐาน (เหมือนกับ Dashboard) ---
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    function toggleUserMenu() {
+        document.getElementById('userMenu').classList.toggle('show');
+    }
+
+    document.addEventListener('click', function(event) {
+        const userDropdown = document.querySelector('.user-dropdown');
+        const userMenu = document.getElementById('userMenu');
+        if (userDropdown && !userDropdown.contains(event.target) && userMenu && userMenu.classList.contains('show')) {
+            userMenu.classList.remove('show');
+        }
+    });
+
+    function getAuthToken() {
+        const token = localStorage.getItem('gtms_token');
+        if (!token) {
+            window.location.href = 'index.html'; // หรือ login.html
+            return null;
+        }
+        return token;
+    }
+
+    async function logout() {
+        // ... (โค้ด Logout เหมือนเดิม) ...
+        const token = getAuthToken();
+        try {
+            if (token) {
+                await fetch(`${API_BASE_URL}/auth/logout`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                });
+            }
+        } catch (error) { console.error('Logout API error:', error); }
+        finally {
+            localStorage.removeItem('gtms_token');
+            localStorage.removeItem('gtms_user');
+            // ... clear other local storage items ...
+            window.location.href = 'index.html'; // หรือ login.html
+        }
+    }
+
+    async function loadUserProfileAndInit() {
+        const token = getAuthToken();
+        if (!token) return;
+
+        const storedUser = localStorage.getItem('gtms_user');
+        if (storedUser) {
+            try {
+                patientData = JSON.parse(storedUser);
+                if (patientData && patientData.id) {
+                    updateUserInfoUI(patientData);
+                    await loadAppointments();
+                    return;
+                }
+            } catch (e) { console.error('Error parsing stored user data:', e); }
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) {
+                if (response.status === 401) { await logout(); }
+                throw new Error(`Failed to load user profile: ${response.statusText}`);
+            }
+            const apiUserData = await response.json();
+            if (apiUserData && apiUserData.user) {
+                patientData = apiUserData.user;
+                localStorage.setItem('gtms_user', JSON.stringify(patientData));
+                updateUserInfoUI(patientData);
+                await loadAppointments();
+            } else {
+                throw new Error('User data not found in API response');
+            }
+        } catch (error) {
+            console.error('Error loading user profile from API:', error);
+            showApiError('ไม่สามารถโหลดข้อมูลผู้ใช้ได้', loadUserProfileAndInit);
+        }
+    }
+
+    function updateUserInfoUI(user) {
+        const userNameEl = document.getElementById('userName');
+        const userAvatarEl = document.getElementById('userAvatar');
+        if (user && userNameEl && userAvatarEl) {
+            const displayName = (user.firstName && user.lastName) ? `${user.firstName} ${user.lastName}` : user.username || 'ผู้ใช้';
+            userNameEl.textContent = displayName;
+            userAvatarEl.textContent = displayName.charAt(0).toUpperCase();
+        }
+    }
+
+    function showApiError(message, retryFunction = null) {
+        // ... (โค้ด showApiError เหมือนเดิม) ...
+        const apiErrorDiv = document.getElementById('apiError');
+        const apiErrorMessageEl = document.getElementById('apiErrorMessage');
+        const retryButton = apiErrorDiv.querySelector('.api-error-retry');
+        if (apiErrorMessageEl) apiErrorMessageEl.textContent = message;
+        if (apiErrorDiv) apiErrorDiv.style.display = 'flex';
+        if (retryFunction && retryButton) {
+            retryButton.onclick = retryFunction;
+            retryButton.style.display = 'inline-block';
+        } else if (retryButton) {
+            retryButton.style.display = 'none';
+        }
+    }
+
+    function hideApiError() {
+        // ... (โค้ด hideApiError เหมือนเดิม) ...
+        const apiErrorDiv = document.getElementById('apiError');
+        if (apiErrorDiv) apiErrorDiv.style.display = 'none';
+    }
+
+    function formatThaiDate(dateString, options = { day: 'numeric', month: 'short', year: 'numeric' }) {
+        // ... (โค้ด formatThaiDate เหมือนเดิม) ...
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('th-TH', options);
+        } catch (e) { return dateString; }
+    }
+
+    function getThaiMonthName(monthIndex) { // รับ month index (0-11)
+        const monthNames = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+        return monthNames[monthIndex];
+    }
+
+    function getThaiMonthShort(dateObject) { // รับ Date object
+        const monthShortNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+        return monthShortNames[dateObject.getMonth()];
+    }
+    // --- END ฟังก์ชันพื้นฐาน ---
+
+
+    // โหลดข้อมูลการนัดหมายทั้งหมด
+    async function loadAppointments() {
+        const token = getAuthToken();
+        if (!token || !patientData || !patientData.id) {
+            console.error("Token or patient ID is missing for loading appointments.");
+            if (!patientData || !patientData.id) await loadUserProfileAndInit(); // พยายามโหลดข้อมูลผู้ใช้ถ้ายังไม่มี
+            return;
+        }
+
+        hideApiError();
+        showLoading('appointmentsContainer'); // แสดง loading
+        const appointmentsEmptyEl = document.getElementById('appointmentsEmpty');
+        if(appointmentsEmptyEl) appointmentsEmptyEl.style.display = 'none';
+
+
+        try {
+            // Backend endpoint /api/patient/appointments (ตามที่คุณให้มา) ควรจะคืน array ของ appointments ทั้งหมดของผู้ป่วย
+            // อาจจะต้องเพิ่ม query param ถ้าต้องการ filter เช่น ?status=all หรือ ?period=all
+            const response = await fetch(`${API_BASE_URL}/patient/appointments`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) {
+                throw new Error(`ไม่สามารถโหลดข้อมูลการนัดหมายได้: ${response.statusText}`);
+            }
+
+            const responseData = await response.json();
+            appointmentsData = responseData.appointments || []; // Backend ส่งข้อมูลมาใน key "appointments"
+
+            // (Optional) โหลดข้อมูลการแจ้งเตือนการนัดหมาย (ถ้าต้องการแสดง)
+            // await loadAppointmentReminders(token, patientData.id);
+
+            renderAppointments();
+
+        } catch (error) {
+            console.error('Error loading appointments:', error);
+            showApiError(error.message || 'ไม่สามารถโหลดข้อมูลการนัดหมายได้', loadAppointments);
+            if(appointmentsEmptyEl) appointmentsEmptyEl.style.display = 'block';
+        } finally {
+            hideLoading('appointmentsContainer'); // ซ่อน loading
+        }
+    }
+
+    // (Optional) โหลดข้อมูลการแจ้งเตือนการนัดหมาย
+    async function loadAppointmentReminders(token, patientId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/patient/appointment-reminders`, { // Endpoint ตาม Backend
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) {
+                console.warn('Failed to load appointment reminders, proceeding without them.');
+                return;
+            }
+            const reminderData = await response.json();
+            const reminders = reminderData.reminders || [];
+
+            if (appointmentsData.length > 0 && reminders.length > 0) {
+                appointmentsData.forEach(appointment => {
+                    appointment.reminders = reminders.filter(r => r.appointment_id === appointment.appointment_id);
+                });
+            }
+        } catch (error) {
+            console.warn('Error loading appointment reminders:', error);
+        }
+    }
+
+    // แสดงข้อมูลการนัดหมายบนหน้าเว็บ
+    function renderAppointments() {
+        const appointmentsContainer = document.getElementById('appointmentsContainer');
+        const appointmentsEmptyEl = document.getElementById('appointmentsEmpty');
+
+        if (!appointmentsData || appointmentsData.length === 0) {
+            appointmentsContainer.innerHTML = '';
+            if(appointmentsEmptyEl) appointmentsEmptyEl.style.display = 'block';
+            return;
+        }
+
+        if(appointmentsEmptyEl) appointmentsEmptyEl.style.display = 'none';
+        appointmentsContainer.innerHTML = '';
+
+        // เรียงลำดับการนัดหมายตามวันที่ (ใหม่ไปเก่า หรือ เก่าไปใหม่ตามต้องการ)
+        // ตัวอย่าง: ใหม่ไปเก่า (นัดหมายล่าสุดหรือที่จะถึงแสดงด้านบน)
+        appointmentsData.sort((a, b) => new Date(b.appointment_date) - new Date(a.appointment_date));
+
+        const groupedAppointments = {};
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        appointmentsData.forEach(appointment => {
+            const appDate = new Date(appointment.appointment_date);
+            const monthYearKey = `${appDate.getFullYear()}-${appDate.getMonth()}`; // Key สำหรับจัดกลุ่ม
+
+            if (!groupedAppointments[monthYearKey]) {
+                groupedAppointments[monthYearKey] = {
+                    monthName: getThaiMonthName(appDate.getMonth()),
+                    year: appDate.getFullYear() + 543, // พ.ศ.
+                    appointments: []
+                };
+            }
+            groupedAppointments[monthYearKey].appointments.push(appointment);
+        });
+
+        // เรียงกลุ่มเดือนจากใหม่ไปเก่า
+        const sortedMonthKeys = Object.keys(groupedAppointments).sort((a, b) => {
+            const [yearA, monthA] = a.split('-').map(Number);
+            const [yearB, monthB] = b.split('-').map(Number);
+            if (yearA !== yearB) return yearB - yearA;
+            return monthB - monthA;
+        });
+
+        sortedMonthKeys.forEach(monthKey => {
+            const group = groupedAppointments[monthKey];
+            const monthSection = document.createElement('div');
+            monthSection.className = 'appointment-month';
+
+            const monthHeader = document.createElement('div');
+            monthHeader.className = 'month-header';
+            monthHeader.textContent = `${group.monthName} ${group.year}`;
+            monthSection.appendChild(monthHeader);
+
+            // เรียงนัดหมายในแต่ละเดือนจากใหม่ไปเก่า (หรือตามต้องการ)
+            group.appointments.sort((a,b) => new Date(b.appointment_date) - new Date(a.appointment_date));
+
+            group.appointments.forEach(appointment => {
+                const appDate = new Date(appointment.appointment_date);
+                appDate.setHours(0,0,0,0);
+
+                let statusClass = '';
+                let statusText = '';
+
+                if (appointment.appointment_status === 'cancelled' || appointment.appointment_status === 'no_show') {
+                    statusClass = 'cancelled'; // หรือ 'no-show'
+                    statusText = appointment.appointment_status === 'cancelled' ? 'ยกเลิกแล้ว' : 'ไม่มาตามนัด';
+                } else if (appointment.appointment_status === 'completed' || appDate < today) {
+                    statusClass = 'past';
+                    statusText = 'ผ่านไปแล้ว';
+                } else if (appDate.getTime() === today.getTime()) {
+                    statusClass = 'today';
+                    statusText = 'วันนี้';
+                } else { // Upcoming
+                    statusClass = 'upcoming';
+                    const diffDays = Math.ceil((appDate - today) / (1000 * 60 * 60 * 24));
+                    statusText = `อีก ${diffDays} วัน`;
+                }
+                
+                const timeParts = appointment.appointment_time ? appointment.appointment_time.split(':') : ['-', '-'];
+                const formattedTime = `${timeParts[0]}:${timeParts[1]} น.`;
+                const doctorName = (appointment.doctor_first_name && appointment.doctor_last_name) 
+                                   ? `${appointment.doctor_first_name} ${appointment.doctor_last_name}` 
+                                   : (appointment.doctor_id || 'ไม่ระบุแพทย์');
+
+
+                const appointmentCard = document.createElement('div');
+                appointmentCard.className = `appointment-card ${statusClass}`;
+                appointmentCard.innerHTML = `
+                    <div class="appointment-date">
+                        <div class="date-day">${appDate.getDate()}</div>
+                        <div class="date-month">${getThaiMonthShort(appDate)}</div>
+                    </div>
+                    <div class="appointment-info">
+                        <div class="appointment-title">${appointment.appointment_type || 'นัดหมาย'}</div>
+                        <div class="appointment-details">
+                            <div>⏰ ${formattedTime}</div>
+                            <div>👨‍⚕️ ${doctorName}</div>
+                            <div>📍 ${appointment.appointment_location || 'ไม่ระบุสถานที่'}</div>
+                        </div>
+                        ${appointment.notes ? `<div class="appointment-notes"><strong>หมายเหตุ:</strong> ${appointment.notes}</div>` : ''}
+                    </div>
+                    <div class="appointment-status ${statusClass}">${statusText}</div>
+                    <div class="appointment-actions">
+                        <button class="appointment-btn view" onclick="showAppointmentDetailModal('${appointment.appointment_id}')">รายละเอียด</button>
+                        ${statusClass === 'upcoming' || statusClass === 'today' ? `
+                            <button class="appointment-btn reschedule" onclick="showRescheduleModal('${appointment.appointment_id}')">ขอเลื่อนนัด</button>
+                        ` : ''}
+                    </div>
+                `;
+                monthSection.appendChild(appointmentCard);
+            });
+            appointmentsContainer.appendChild(monthSection);
+        });
+    }
+
+    function showAppointmentDetailModal(appointmentId) {
+        currentSelectedAppointment = appointmentsData.find(app => app.appointment_id === appointmentId);
+        if (!currentSelectedAppointment) return;
+
+        const app = currentSelectedAppointment;
+        const modalTitle = document.getElementById('appointmentDetailTitle');
+        const modalBody = document.getElementById('appointmentDetailBody');
+        
+        const appDate = new Date(app.appointment_date);
+        const timeParts = app.appointment_time.split(':');
+        const doctorName = (app.doctor_first_name && app.doctor_last_name) 
+                           ? `${app.doctor_first_name} ${app.doctor_last_name}` 
+                           : (app.doctor_id || 'ไม่ระบุ');
+
+        modalTitle.textContent = `รายละเอียด: ${app.appointment_type || 'นัดหมาย'}`;
+        modalBody.innerHTML = `
+            <div class="detail-section">
+                <div class="detail-label">วันที่นัด:</div>
+                <div class="detail-value">${formatThaiDate(app.appointment_date, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-label">เวลา:</div>
+                <div class="detail-value">${timeParts[0]}:${timeParts[1]} น.</div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-label">ประเภทนัดหมาย:</div>
+                <div class="detail-value">${app.appointment_type || '-'}</div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-label">แพทย์:</div>
+                <div class="detail-value">${doctorName} (${app.specialty || 'ไม่ระบุแผนก'})</div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-label">สถานที่:</div>
+                <div class="detail-value">${app.appointment_location || '-'}</div>
+            </div>
+             <div class="detail-section">
+                <div class="detail-label">สถานะ:</div>
+                <div class="detail-value">${app.appointment_status || '-'}</div>
+            </div>
+            ${app.notes ? `
+                <div class="detail-section">
+                    <div class="detail-label">หมายเหตุจากแพทย์:</div>
+                    <div class="detail-value">${app.notes}</div>
+                </div>` : ''}
+            `;
+        document.getElementById('appointmentDetailModal').style.display = 'flex';
+    }
+
+    function showRescheduleModal(appointmentId) {
+        currentSelectedAppointment = appointmentsData.find(app => app.appointment_id === appointmentId);
+        if (!currentSelectedAppointment) return;
+
+        const app = currentSelectedAppointment;
+        const modalTitle = document.getElementById('rescheduleTitle');
+        const appointmentInfoEl = document.getElementById('rescheduleAppointmentInfo');
+        
+        modalTitle.textContent = `ขอเลื่อนนัด: ${app.appointment_type}`;
+        appointmentInfoEl.innerHTML = `
+            <div class="appointment-info-item"><span class="info-label">นัดเดิม:</span> ${formatThaiDate(app.appointment_date)} เวลา ${app.appointment_time.substring(0,5)} น.</div>
+            <div class="appointment-info-item"><span class="info-label">แพทย์:</span> ${(app.doctor_first_name && app.doctor_last_name) ? `${app.doctor_first_name} ${app.doctor_last_name}` : 'ไม่ระบุ'}</div>
+        `;
+        document.getElementById('rescheduleForm').reset();
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('preferredDate1').min = tomorrow.toISOString().split('T')[0];
+        document.getElementById('preferredDate2').min = tomorrow.toISOString().split('T')[0];
+        document.getElementById('rescheduleModal').style.display = 'flex';
+    }
+
+    async function submitRescheduleRequest() {
+        // ... (โค้ด submitRescheduleRequest เหมือนเดิม หรือปรับปรุงเพื่อเรียก API จริงถ้ามี) ...
+        // สำหรับตอนนี้ จะเป็นการสร้าง Alert/Notification ไปยังระบบ (สมมติฐาน)
+        if (!currentSelectedAppointment) return;
+        const token = getAuthToken();
+        if (!token) return;
+
+        const submitButton = document.getElementById('submitRescheduleBtn');
+        const spinner = document.getElementById('rescheduleSpinner');
+        submitButton.disabled = true;
+        if(spinner) spinner.style.display = 'inline-block';
+
+        const preferredDate1 = document.getElementById('preferredDate1').value;
+        const preferredDate2 = document.getElementById('preferredDate2').value;
+        const reason = document.getElementById('rescheduleReason').value;
+
+        if (!preferredDate1 || !reason) {
+            alert('กรุณากรอกวันที่ต้องการ (อย่างน้อย 1 วัน) และเหตุผล');
+            submitButton.disabled = false;
+            if(spinner) spinner.style.display = 'none';
+            return;
+        }
+
+        const originalAppointmentDate = new Date(currentSelectedAppointment.appointment_date);
+        const date1 = new Date(preferredDate1);
+        if (date1 <= originalAppointmentDate) {
+            alert('วันที่ต้องการเลื่อนนัด (ตัวเลือกที่ 1) ต้องเป็นวันหลังจากวันนัดเดิม');
+            submitButton.disabled = false;
+            if(spinner) spinner.style.display = 'none';
+            return;
+        }
+        if (preferredDate2) {
+            const date2 = new Date(preferredDate2);
+             if (date2 <= originalAppointmentDate) {
+                alert('วันที่ต้องการเลื่อนนัด (ตัวเลือกที่ 2) ต้องเป็นวันหลังจากวันนัดเดิม');
+                submitButton.disabled = false;
+                if(spinner) spinner.style.display = 'none';
+                return;
+            }
+        }
+
+
+        // สร้าง Payload สำหรับ Notification/Alert (ปรับตาม API ของคุณ)
+        const reschedulePayload = {
+            user_id: patientData.id, // หรือ patient_id ตามที่ API ต้องการ
+            notification_type: 'appointment_reschedule_request', // ประเภทการแจ้งเตือน
+            title: `ผู้ป่วย ${patientData.firstName} ขอเลื่อนนัดหมาย ID: ${currentSelectedAppointment.appointment_id}`,
+            body: `นัดเดิม: ${formatThaiDate(currentSelectedAppointment.appointment_date)} เวลา ${currentSelectedAppointment.appointment_time.substring(0,5)} น.\nประเภท: ${currentSelectedAppointment.appointment_type}\nขอเลื่อนเป็น:\n1. ${formatThaiDate(preferredDate1)}\n${preferredDate2 ? `2. ${formatThaiDate(preferredDate2)}\n` : ''}เหตุผล: ${reason}`,
+            priority: 'medium',
+            related_entity_type: 'Appointments',
+            related_entity_id: currentSelectedAppointment.appointment_id
+        };
+
+        console.log("Sending reschedule request (as notification):", reschedulePayload);
+
+        try {
+            // สมมติว่าคุณมี Endpoint สำหรับสร้าง Notification กลาง
+            // ถ้าไม่มี อาจจะต้องส่งไปที่ Endpoint ที่รับ "ข้อความ" หรือ "ติดต่อเจ้าหน้าที่"
+            const response = await fetch(`${API_BASE_URL}/patient/notifications`, { // Endpoint อาจจะต้องเป็น POST และรับ payload
+                method: 'POST', // <<--- สมมติว่าเป็น POST
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(reschedulePayload)
+            });
+
+            if (!response.ok) {
+                 const errorData = await response.json().catch(() => ({ message: 'ไม่สามารถส่งคำขอได้' }));
+                throw new Error(errorData.message || `Failed to submit reschedule request: ${response.statusText}`);
+            }
+            
+            closeModal('rescheduleModal');
+            alert('ส่งคำขอเลื่อนนัดเรียบร้อยแล้ว เจ้าหน้าที่จะตรวจสอบและติดต่อกลับ');
+            // อาจจะต้องมีการ refresh ข้อมูลบางส่วน หรือแสดงสถานะ "รอการยืนยัน" บนนัดหมายนั้น
+            
+        } catch (error) {
+            console.error('Error submitting reschedule request:', error);
+            alert(`ไม่สามารถส่งคำขอเลื่อนนัดได้: ${error.message}`);
+        } finally {
+            submitButton.disabled = false;
+            if(spinner) spinner.style.display = 'none';
+        }
+    }
+
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.style.display = 'none';
+        currentSelectedAppointment = null;
+    }
+
+    function showLoading(containerId) {
+        // ... (โค้ด showLoading เหมือนเดิม) ...
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const loadingSpinner = document.createElement('div');
+        loadingSpinner.className = 'loading-container';
+        loadingSpinner.innerHTML = `<div class="loading-spinner"></div><div class="loading-text">กำลังโหลดข้อมูล...</div>`;
+        container.innerHTML = '';
+        container.appendChild(loadingSpinner);
+    }
+
+    function hideLoading(containerId) {
+        // ... (โค้ด hideLoading เหมือนเดิม) ...
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const loadingElement = container.querySelector('.loading-container');
+        if (loadingElement)  container.removeChild(loadingElement);
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        if (getAuthToken()) {
+            loadUserProfileAndInit();
+        }
+    });
+</script>
+</body>
+</html>

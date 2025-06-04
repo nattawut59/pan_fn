@@ -1,0 +1,1915 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ลงทะเบียนใช้งานระบบ - GTMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00A8A8;
+            --secondary: #00CECE;
+            --primary-light: #E0F2F1;
+            --dark: #324047;
+            --gray: #6B7280;
+            --light-gray: #F3F4F6;
+            --white: #FFFFFF;
+            --error: #EF4444;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --border: #E5E7EB;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Background Design */
+        .background-orbs {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+            animation: orbFloat 20s ease-in-out infinite;
+        }
+
+        .orb:nth-child(1) {
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            top: -300px;
+            left: -300px;
+        }
+
+        .orb:nth-child(2) {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            bottom: -200px;
+            right: -200px;
+            animation-delay: -5s;
+        }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(50px, -50px); }
+            50% { transform: translate(-30px, 30px); }
+            75% { transform: translate(-50px, -30px); }
+        }
+
+        /* Progress Steps */
+        .progress-container {
+            margin-bottom: 48px;
+            padding: 0 20px;
+        }
+
+        .progress-steps {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--light-gray);
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        .progress-line-active {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.6s ease;
+        }
+
+        .step {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: var(--white);
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--white);
+            border: 3px solid var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .step.completed .step-circle {
+            background: var(--success);
+            border-color: var(--success);
+            color: var(--white);
+        }
+
+        .step.active .step-circle {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: var(--white);
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0, 168, 168, 0.3);
+        }
+
+        .step-label {
+            position: absolute;
+            top: 100%;
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #6c757d;
+            white-space: nowrap;
+        }
+
+        .step.active .step-label {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .step.completed .step-label {
+            color: var(--success);
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1000;
+            display: none;
+        }
+
+        .connection-status.connected {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .connection-status.disconnected {
+            background: rgba(244, 67, 54, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 48px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            width: 70px;
+            height: 70px;
+            background: var(--white);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            opacity: 0.1;
+        }
+
+        .logo-icon {
+            font-size: 32px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 1;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(0, 168, 168, 0.05);
+            border: 1px solid rgba(0, 168, 168, 0.1);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .info-text {
+            font-size: 14px;
+            color: var(--dark);
+            line-height: 1.5;
+        }
+
+        /* Step Sections */
+        .step-section {
+            display: none;
+        }
+
+        .step-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Form Sections */
+        .form-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .required {
+            color: var(--error);
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: var(--white);
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(0, 168, 168, 0.1);
+        }
+
+        /* Radio Group */
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--dark);
+        }
+
+        .radio-input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+
+        /* Checkbox Group */
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+
+        .checkbox-item label {
+            font-size: 14px;
+            color: var(--dark);
+            cursor: pointer;
+        }
+
+        /* Text Area */
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: var(--white);
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(0, 168, 168, 0.1);
+        }
+
+        /* Health Section */
+        .health-section {
+            background: var(--light-gray);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .hidden-field {
+            display: none;
+            margin-top: 16px;
+        }
+
+        .hidden-field.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Checkbox */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-top: 24px;
+            padding: 16px;
+            background: rgba(0, 168, 168, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 168, 168, 0.1);
+        }
+
+        .checkbox-input {
+            width: 18px;
+            height: 18px;
+            margin-top: 3px;
+            accent-color: var(--primary);
+        }
+
+        .checkbox-label {
+            font-size: 14px;
+            color: var(--dark);
+            line-height: 1.5;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 16px;
+            margin-top: 40px;
+        }
+
+        .button {
+            padding: 16px 32px;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--white);
+            flex: 1;
+        }
+
+        .button-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 168, 168, 0.3);
+        }
+
+        .button-primary.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .button-text {
+            transition: opacity 0.3s ease;
+        }
+
+        .button-primary.loading .button-text {
+            opacity: 0;
+        }
+
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: var(--white);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .button-primary.loading .loading-spinner {
+            opacity: 1;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .button-secondary {
+            background: var(--white);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            flex: 0 0 150px;
+        }
+
+        .button-secondary:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        /* Help Text */
+        .help-text {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 8px;
+        }
+
+        /* Password UI */
+        .password-input-container {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #6c757d;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .password-toggle:hover {
+            background: rgba(0, 168, 168, 0.1);
+            color: var(--primary);
+        }
+
+        .password-requirements {
+            margin-top: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .requirement {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .requirement:last-child {
+            margin-bottom: 0;
+        }
+
+        .requirement.valid {
+            color: var(--success);
+        }
+
+        .requirement.valid .req-icon::before {
+            content: "✅";
+        }
+
+        .req-icon::before {
+            content: "❌";
+        }
+
+        .requirement.valid .req-icon::before {
+            content: "✅";
+        }
+
+        .password-strength {
+            margin-top: 12px;
+        }
+
+        .strength-bar {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+
+        .strength-fill {
+            height: 100%;
+            width: 0%;
+            background: #dc3545;
+            transition: all 0.3s ease;
+            border-radius: 3px;
+        }
+
+        .strength-fill.weak {
+            background: #dc3545;
+            width: 25%;
+        }
+
+        .strength-fill.fair {
+            background: #ffc107;
+            width: 50%;
+        }
+
+        .strength-fill.good {
+            background: #fd7e14;
+            width: 75%;
+        }
+
+        .strength-fill.strong {
+            background: #28a745;
+            width: 100%;
+        }
+
+        .strength-text {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .strength-text.weak {
+            color: #dc3545;
+        }
+
+        .strength-text.fair {
+            color: #ffc107;
+        }
+
+        .strength-text.good {
+            color: #fd7e14;
+        }
+
+        .strength-text.strong {
+            color: #28a745;
+        }
+
+        .password-match {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #dc3545;
+            transition: all 0.3s ease;
+        }
+
+        .password-match.valid {
+            color: var(--success);
+        }
+
+        .password-match.valid .match-icon::before {
+            content: "✅";
+        }
+
+        .match-icon::before {
+            content: "❌";
+        }
+
+        .password-match.valid .match-icon::before {
+            content: "✅";
+        }
+
+        /* Error State */
+        .form-group.error .form-input,
+        .form-group.error .form-select,
+        .form-group.error .form-textarea {
+            border-color: var(--error);
+        }
+
+        .error-message {
+            color: var(--error);
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .form-group.error .error-message {
+            display: block;
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert.show {
+            display: flex;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .card {
+                padding: 32px 24px;
+            }
+
+            .progress-steps {
+                gap: 8px;
+            }
+
+            .step-label {
+                font-size: 10px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+
+            .radio-group {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .button-secondary {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="connectionStatus" class="connection-status">
+        ตรวจสอบการเชื่อมต่อ...
+    </div>
+
+    <div class="background-orbs">
+        <div class="orb"></div>
+        <div class="orb"></div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <div class="logo">
+                    <span class="logo-icon">👁️</span>
+                </div>
+                <h1 class="title">ลงทะเบียนใช้งานระบบ</h1>
+                <p class="subtitle">ระบบติดตามการรักษาผู้ป่วยโรคต้อหิน (GTMS)</p>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-steps">
+                    <div class="progress-line">
+                        <div class="progress-line-active"></div>
+                    </div>
+                    <div class="step active">
+                        <div class="step-circle">1</div>
+                        <span class="step-label">ข้อมูลทั่วไป</span>
+                    </div>
+                    <div class="step">
+                        <div class="step-circle">2</div>
+                        <span class="step-label">ตั้งค่าบัญชี</span>
+                    </div>
+                    <div class="step">
+                        <div class="step-circle">3</div>
+                        <span class="step-label">ยืนยันการลงทะเบียน</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-icon">ℹ️</div>
+                <div class="info-text">
+                    <strong>ขั้นตอนที่ <span id="currentStepText">1</span>: <span id="currentStepTitle">ข้อมูลทั่วไป</span></strong><br>
+                    <span id="currentStepDescription">กรุณากรอกข้อมูลส่วนตัวและข้อมูลสุขภาพให้ครบถ้วน ข้อมูลที่มีเครื่องหมาย * เป็นข้อมูลที่จำเป็นต้องกรอก</span>
+                </div>
+            </div>
+
+            <div id="alertBox" class="alert">
+                <span id="alertMessage"></span>
+            </div>
+
+            <form id="registrationForm">
+                <div class="step-section active" id="step1">
+                    <div class="form-section">
+                        <div class="section-title">
+                            <div class="section-icon">👤</div>
+                            ข้อมูลส่วนตัว
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">คำนำหน้า <span class="required">*</span></label>
+                                <select class="form-select" name="title" required>
+                                    <option value="">เลือกคำนำหน้า</option>
+                                    <option value="นาย">นาย</option>
+                                    <option value="นาง">นาง</option>
+                                    <option value="นางสาว">นางสาว</option>
+                                </select>
+                                <div class="error-message">กรุณาเลือกคำนำหน้า</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">ชื่อ <span class="required">*</span></label>
+                                <input type="text" class="form-input" name="firstName" placeholder="กรุณากรอกชื่อจริง" required>
+                                <div class="error-message">กรุณากรอกชื่อ</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">นามสกุล <span class="required">*</span></label>
+                                <input type="text" class="form-input" name="lastName" placeholder="กรุณากรอกนามสกุล" required>
+                                <div class="error-message">กรุณากรอกนามสกุล</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">เลขที่บัตรประชาชน <span class="required">*</span></label>
+                                <input type="text" class="form-input" name="idCard" placeholder="X-XXXX-XXXXX-XX-X" maxlength="17" required>
+                                <div class="help-text">กรุณากรอกเลขบัตรประชาชน 13 หลัก</div>
+                                <div class="error-message">กรุณากรอกเลขบัตรประชาชนให้ถูกต้อง</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">วันเดือนปีเกิด <span class="required">*</span></label>
+                                <input type="date" class="form-input" name="birthDate" required>
+                                <div class="error-message">กรุณาเลือกวันเกิด</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">เพศ <span class="required">*</span></label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="gender" value="male" class="radio-input" required>
+                                        ชาย
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="gender" value="female" class="radio-input">
+                                        หญิง
+                                    </label>
+                                </div>
+                                <div class="error-message">กรุณาเลือกเพศ</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">เบอร์โทรศัพท์ <span class="required">*</span></label>
+                                <input type="tel" class="form-input" name="phone" placeholder="0xxxxxxxxx" maxlength="10" required>
+                                <div class="error-message">กรุณากรอกเบอร์โทรศัพท์</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">อีเมล</label>
+                                <input type="email" class="form-input" name="email" placeholder="example@email.com">
+                                <div class="error-message">กรุณากรอกอีเมลให้ถูกต้อง</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="section-title">
+                            <div class="section-icon">🚨</div>
+                            ข้อมูลผู้ติดต่อฉุกเฉิน
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">ชื่อผู้ติดต่อฉุกเฉิน <span class="required">*</span></label>
+                                <input type="text" class="form-input" name="emergencyContact" placeholder="กรุณากรอกชื่อผู้ติดต่อฉุกเฉิน" required>
+                                <div class="error-message">กรุณากรอกชื่อผู้ติดต่อฉุกเฉิน</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">ความสัมพันธ์ <span class="required">*</span></label>
+                                <input type="text" class="form-input" name="relationship" placeholder="เช่น บิดา, มารดา, คู่สมรส" required>
+                                <div class="error-message">กรุณากรอกความสัมพันธ์</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">เบอร์โทรศัพท์ผู้ติดต่อฉุกเฉิน <span class="required">*</span></label>
+                                <input type="tel" class="form-input" name="emergencyPhone" placeholder="0xxxxxxxxx" maxlength="10" required>
+                               <div class="error-message">กรุณากรอกเบอร์โทรศัพท์ผู้ติดต่อฉุกเฉิน</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="health-section">
+                        <div class="section-title">
+                            <div class="section-icon">🏥</div>
+                            ข้อมูลสุขภาพพื้นฐาน
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">มีโรคประจำตัวหรือไม่</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="chronicDisease" value="yes" class="radio-input" onclick="toggleChronicDisease(true)">
+                                    มี
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="chronicDisease" value="no" class="radio-input" checked onclick="toggleChronicDisease(false)">
+                                    ไม่มี
+                                </label>
+                            </div>
+                            <div id="chronicDiseaseDetails" class="hidden-field">
+                                <input type="text" class="form-input" name="chronicDiseaseList" placeholder="เช่น เบาหวาน, ความดันโลหิตสูง, หัวใจ">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">แพ้ยาหรือไม่</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="drugAllergy" value="yes" class="radio-input" onclick="toggleDrugAllergy(true)">
+                                    มี
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="drugAllergy" value="no" class="radio-input" checked onclick="toggleDrugAllergy(false)">
+                                    ไม่มี
+                                </label>
+                            </div>
+                            <div id="drugAllergyDetails" class="hidden-field">
+                                <input type="text" class="form-input" name="drugAllergyList" placeholder="เช่น พาราเซตามอล, เพนนิซิลิน, แอสไพริน">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="section-title">
+                            <div class="section-icon">👪</div>
+                            ประวัติครอบครัวและปัจจัยเสี่ยง
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">มีประวัติโรคต้อหินในครอบครัวหรือไม่</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="familyHistory" value="yes" class="radio-input" onclick="toggleFamilyHistory(true)">
+                                    มี
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="familyHistory" value="no" class="radio-input" checked onclick="toggleFamilyHistory(false)">
+                                    ไม่มี
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="familyHistory" value="not-sure" class="radio-input" onclick="toggleFamilyHistory(false)">
+                                    ไม่แน่ใจ
+                                </label>
+                            </div>
+                            <div id="familyHistoryDetails" class="hidden-field">
+                                <input type="text" class="form-input" name="familyMember" placeholder="เช่น พ่อ, แม่, พี่ชาย, น้องสาว">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">ปัจจัยเสี่ยงที่มี (เลือกได้มากกว่า 1 ข้อ)</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="risk1" name="riskFactors" value="diabetes">
+                                    <label for="risk1">เบาหวาน</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="risk2" name="riskFactors" value="hypertension">
+                                    <label for="risk2">ความดันโลหิตสูง</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="risk3" name="riskFactors" value="heart-disease">
+                                    <label for="risk3">โรคหัวใจ</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="risk4" name="riskFactors" value="myopia">
+                                    <label for="risk4">สายตาสั้น</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="risk5" name="riskFactors" value="steroid">
+                                    <label for="risk5">การใช้ยาสเตียรอยด์</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="risk6" name="riskFactors" value="injury">
+                                    <label for="risk6">การบาดเจ็บที่ตา</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="risk7" name="riskFactors" value="none">
+                                    <label for="risk7">ไม่มีปัจจัยเสี่ยง</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="section-title">
+                            <div class="section-icon">📝</div>
+                            หมายเหตุเพิ่มเติม
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label class="form-label">ข้อมูลเพิ่มเติมที่ต้องการแจ้งให้แพทย์ทราบ</label>
+                            <textarea class="form-textarea" name="additionalNotes" placeholder="ข้อมูลอื่นๆ ที่เกี่ยวข้องกับสุขภาพและโรคต้อหิน เช่น อาการที่พบ, ประวัติการรักษา, หรือข้อกังวลอื่นๆ"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-section" id="step2">
+                    <div class="form-section">
+                        <div class="section-title">
+                            <div class="section-icon">🔐</div>
+                            ตั้งค่าบัญชีผู้ใช้
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">ชื่อผู้ใช้ (Username)</label>
+                                <input type="text" class="form-input" name="username" placeholder="ใช้เลขบัตรประชาชนหากไม่ระบุ">
+                                <div class="help-text">หากไม่ระบุ ระบบจะใช้เลขบัตรประชาชนเป็นชื่อผู้ใช้</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">รหัสผ่าน <span class="required">*</span></label>
+                                <div class="password-input-container">
+                                    <input type="password" class="form-input" name="password" id="password" placeholder="รหัสผ่านอย่างน้อย 8 ตัวอักษร" required>
+                                    <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                                        <span class="password-toggle-text">👁️</span>
+                                    </button>
+                                </div>
+                                <div class="password-requirements">
+                                    <div class="requirement" id="req-length">
+                                        <span class="req-icon">❌</span>
+                                        <span class="req-text">อย่างน้อย 8 ตัวอักษร</span>
+                                    </div>
+                                    <div class="requirement" id="req-letter">
+                                        <span class="req-icon">❌</span>
+                                        <span class="req-text">มีตัวอักษร (a-z หรือ A-Z)</span>
+                                    </div>
+                                    <div class="requirement" id="req-number">
+                                        <span class="req-icon">❌</span>
+                                        <span class="req-text">มีตัวเลข (0-9)</span>
+                                    </div>
+                                    <div class="requirement" id="req-special">
+                                        <span class="req-icon">❌</span>
+                                        <span class="req-text">มีอักษรพิเศษ (!@#$%^&*)</span>
+                                    </div>
+                                </div>
+                                <div class="password-strength">
+                                    <div class="strength-bar">
+                                        <div class="strength-fill" id="strengthFill"></div>
+                                    </div>
+                                    <span class="strength-text" id="strengthText">ความแข็งแกร่ง: อ่อนแอ</span>
+                                </div>
+                                <div class="error-message">กรุณากรอกรหัสผ่าน</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">ยืนยันรหัสผ่าน <span class="required">*</span></label>
+                                <div class="password-input-container">
+                                    <input type="password" class="form-input" name="confirmPassword" id="confirmPassword" placeholder="กรอกรหัสผ่านอีกครั้ง" required>
+                                    <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+                                        <span class="password-toggle-text">👁️</span>
+                                    </button>
+                                </div>
+                                <div class="password-match" id="passwordMatch">
+                                    <span class="match-icon">❌</span>
+                                    <span class="match-text">รหัสผ่านไม่ตรงกัน</span>
+                                </div>
+                                <div class="error-message">กรุณายืนยันรหัสผ่าน</div>
+                            </div>
+                        </div>
+
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="consentToDataUsage" name="consentToDataUsage" class="checkbox-input" required>
+                            <label for="consentToDataUsage" class="checkbox-label">
+                                ข้าพเจ้ายินยอมให้เก็บข้อมูลส่วนบุคคล และข้อมูลทางการแพทย์เพื่อใช้ในการรักษาและติดตามอาการ ตามนโยบายคุ้มครองข้อมูลส่วนบุคคลของโรงพยาบาล <span class="required">*</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-section" id="step3">
+                    <div class="form-section">
+                        <div class="section-title">
+                            <div class="section-icon">✅</div>
+                            ตรวจสอบข้อมูลและยืนยันการลงทะเบียน
+                        </div>
+                        
+                        <div style="background: rgba(0, 168, 168, 0.05); border: 1px solid rgba(0, 168, 168, 0.1); border-radius: 16px; padding: 20px; margin-bottom: 24px;">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div style="width: 40px; height: 40px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; flex-shrink: 0;">
+                                    ℹ️
+                                </div>
+                                <div style="font-size: 14px; color: var(--dark); line-height: 1.5;">
+                                    <strong>กรุณาตรวจสอบข้อมูลก่อนยืนยันการลงทะเบียน</strong><br>
+                                    หากข้อมูลไม่ถูกต้อง สามารถกดปุ่ม "ย้อนกลับ" เพื่อแก้ไขข้อมูลได้
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="reviewData" class="review-section">
+                            </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="button button-secondary" id="prevButton" onclick="previousStep()" style="display: none;">
+                        ย้อนกลับ
+                    </button>
+                    <button type="button" class="button button-secondary" onclick="goToLogin()">
+                        ยกเลิก
+                    </button>
+                    <button type="button" class="button button-primary" id="nextButton" onclick="nextStep()">
+                        <span class="button-text">ถัดไป</span>
+                        <div class="loading-spinner"></div>
+                    </button>
+                    <button type="submit" class="button button-primary" id="submitButton" style="display: none;">
+                        <span class="button-text">ลงทะเบียน</span>
+                        <div class="loading-spinner"></div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+<script>
+    // 🔧 API Configuration - เชื่อมต่อกับ Backend ที่ Port 5001
+    const API_BASE_URL = 'http://localhost:5001/api';
+    
+    // Global variables
+    let isConnected = false;
+    let currentStep = 1;
+    const totalSteps = 3;
+    
+    // Step info
+    const stepInfo = {
+        1: {
+            title: 'ข้อมูลทั่วไป',
+            description: 'กรุณากรอกข้อมูลส่วนตัวและข้อมูลสุขภาพให้ครบถ้วน ข้อมูลที่มีเครื่องหมาย * เป็นข้อมูลที่จำเป็นต้องกรอก'
+        },
+        2: {
+            title: 'ตั้งค่าบัญชี',
+            description: 'กรุณาตั้งค่าชื่อผู้ใช้และรหัสผ่านสำหรับเข้าสู่ระบบ และยอมรับเงื่อนไขการใช้งาน'
+        },
+        3: {
+            title: 'ยืนยันการลงทะเบียน',
+            description: 'ตรวจสอบข้อมูลทั้งหมดและกดปุ่ม "ลงทะเบียน" เพื่อเสร็จสิ้นการลงทะเบียน'
+        }
+    };
+
+    // 🔧 Show connection status
+    function showConnectionStatus(status, message) {
+        const statusDiv = document.getElementById('connectionStatus');
+        statusDiv.textContent = message;
+        statusDiv.className = `connection-status ${status}`;
+        statusDiv.style.display = 'block';
+        
+        if (status === 'connected') {
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+        }
+    }
+    
+    // 🔧 Test API connection
+    async function testConnection() {
+        console.log('🔍 Testing API connection...');
+        try {
+            const response = await fetch(`${API_BASE_URL}/health`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ API Health Check Success:', data);
+                isConnected = true;
+                showConnectionStatus('connected', '✅ เชื่อมต่อเซิร์ฟเวอร์สำเร็จ');
+                return true;
+            } else {
+                throw new Error(`HTTP ${response.status}`);
+            }
+        } catch (error) {
+            console.error('❌ API Connection failed:', error);
+            isConnected = false;
+            showConnectionStatus('disconnected', '❌ ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+            return false;
+        }
+    }
+
+    // Update progress step
+    function updateProgressStep(step) {
+        const steps = document.querySelectorAll('.step');
+        const progressLine = document.querySelector('.progress-line-active');
+        
+        steps.forEach((stepEl, index) => {
+            if (index < step - 1) {
+                stepEl.classList.add('completed');
+                stepEl.classList.remove('active');
+            } else if (index === step - 1) {
+                stepEl.classList.add('active');
+                stepEl.classList.remove('completed');
+            } else {
+                stepEl.classList.remove('active', 'completed');
+            }
+        });
+        
+        // Update progress line
+        const progressPercent = ((step - 1) / (totalSteps - 1)) * 100;
+        progressLine.style.width = `${progressPercent}%`;
+    }
+
+    // Update step info
+    function updateStepInfo(step) {
+        document.getElementById('currentStepText').textContent = step;
+        document.getElementById('currentStepTitle').textContent = stepInfo[step].title;
+        document.getElementById('currentStepDescription').textContent = stepInfo[step].description;
+    }
+
+    // Show step
+    function showStep(step) {
+        // Hide all steps
+        document.querySelectorAll('.step-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        // Show current step
+        document.getElementById(`step${step}`).classList.add('active');
+        
+        // Update UI
+        updateProgressStep(step);
+        updateStepInfo(step);
+        
+        // Update buttons
+        const prevButton = document.getElementById('prevButton');
+        const nextButton = document.getElementById('nextButton');
+        const submitButton = document.getElementById('submitButton');
+        
+        if (step === 1) {
+            prevButton.style.display = 'none';
+            nextButton.style.display = 'inline-flex'; // Changed from block to inline-flex
+            submitButton.style.display = 'none';
+        } else if (step === totalSteps) {
+            prevButton.style.display = 'inline-flex'; // Changed from block to inline-flex
+            nextButton.style.display = 'none';
+            submitButton.style.display = 'inline-flex'; // Changed from block to inline-flex
+        } else {
+            prevButton.style.display = 'inline-flex'; // Changed from block to inline-flex
+            nextButton.style.display = 'inline-flex'; // Changed from block to inline-flex
+            submitButton.style.display = 'none';
+        }
+    }
+
+    // Next step
+    function nextStep() {
+        if (validateCurrentStep()) {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                showStep(currentStep);
+                
+                // Show review data in step 3
+                if (currentStep === 3) {
+                    showReviewData();
+                }
+            }
+        }
+    }
+
+    // Previous step
+    function previousStep() {
+        if (currentStep > 1) {
+            currentStep--;
+            showStep(currentStep);
+        }
+    }
+
+    // Validate current step
+    function validateCurrentStep() {
+        const currentStepElement = document.getElementById(`step${currentStep}`);
+        const requiredFields = currentStepElement.querySelectorAll('[required]');
+        let isValid = true;
+
+        // Clear previous errors
+        currentStepElement.querySelectorAll('.form-group').forEach(group => {
+            group.classList.remove('error');
+        });
+
+        // Validate required fields in current step
+        requiredFields.forEach(field => {
+            if (field.type === 'radio') {
+                const radioGroup = currentStepElement.querySelectorAll(`[name="${field.name}"]`);
+                const isChecked = Array.from(radioGroup).some(radio => radio.checked);
+                if (!isChecked) {
+                    field.closest('.form-group').classList.add('error');
+                    isValid = false;
+                }
+            } else if (field.type === 'checkbox') { // Added for consent checkbox
+                if (!field.checked) {
+                    field.closest('.checkbox-wrapper') ? field.closest('.checkbox-wrapper').classList.add('error') : field.closest('.form-group').classList.add('error');
+                    isValid = false;
+                } else {
+                     if(field.closest('.checkbox-wrapper')) field.closest('.checkbox-wrapper').classList.remove('error');
+                }
+            }
+            else if (!field.value.trim()) {
+                field.closest('.form-group').classList.add('error');
+                isValid = false;
+            }
+        });
+
+        // Additional validation for step 1
+        if (currentStep === 1) {
+            const email = currentStepElement.querySelector('input[name="email"]');
+            if (email.value && !isValidEmail(email.value)) {
+                email.closest('.form-group').classList.add('error');
+                isValid = false;
+            }
+            
+            const idCard = currentStepElement.querySelector('input[name="idCard"]');
+            if (idCard.value && !isValidIdCard(idCard.value)) {
+                idCard.closest('.form-group').classList.add('error');
+                // showAlert('เลขบัตรประชาชนไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง', 'error'); // Alert is shown globally
+                isValid = false;
+            }
+            
+            const phones = currentStepElement.querySelectorAll('input[type="tel"]');
+            phones.forEach(phone => {
+                if (phone.value && !isValidPhone(phone.value)) {
+                    phone.closest('.form-group').classList.add('error');
+                    isValid = false;
+                }
+            });
+        }
+
+        // Additional validation for step 2
+        if (currentStep === 2) {
+            const password = currentStepElement.querySelector('input[name="password"]');
+            const confirmPassword = currentStepElement.querySelector('input[name="confirmPassword"]');
+            const terms = currentStepElement.querySelector('#consentToDataUsage'); // This is actually in step 2
+            
+            if (!password.value) { // Check if password is empty first
+                 password.closest('.form-group').classList.add('error');
+                 isValid = false;
+            } else {
+                if (password.value.length < 8) {
+                    password.closest('.form-group').classList.add('error');
+                    // showAlert('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร', 'error'); // Alert is shown globally
+                    isValid = false;
+                }
+                if (!isStrongPassword(password.value)) {
+                    password.closest('.form-group').classList.add('error');
+                    // showAlert('รหัสผ่านต้องประกอบด้วยตัวอักษร ตัวเลข และอักษรพิเศษ', 'error'); // Alert is shown globally
+                    isValid = false;
+                }
+            }
+
+            if (!confirmPassword.value) {
+                 confirmPassword.closest('.form-group').classList.add('error');
+                 isValid = false;
+            } else if (password.value && password.value !== confirmPassword.value) { // Only check match if password has value
+                confirmPassword.closest('.form-group').classList.add('error');
+                // showAlert('รหัสผ่านไม่ตรงกัน', 'error'); // Alert is shown globally
+                isValid = false;
+            }
+
+            if (!terms.checked) {
+                // showAlert('กรุณายอมรับข้อตกลงและนโยบายความเป็นส่วนตัว', 'error'); // Alert is shown globally
+                // Add error class to the wrapper for visual feedback if desired
+                terms.closest('.checkbox-wrapper').classList.add('error');
+                isValid = false;
+            } else {
+                 terms.closest('.checkbox-wrapper').classList.remove('error');
+            }
+        }
+
+        if (!isValid) {
+            showAlert('กรุณาตรวจสอบข้อมูลที่กรอกให้ครบถ้วนและถูกต้อง', 'error');
+        }
+
+        return isValid;
+    }
+
+    // Show review data
+    function showReviewData() {
+        const form = document.getElementById('registrationForm');
+        const formData = new FormData(form);
+        const data = {};
+        
+        // Convert FormData to object, special handling for multi-value checkboxes
+        formData.forEach((value, key) => {
+            if (key === 'riskFactors') {
+                if (!data[key]) {
+                    data[key] = [];
+                }
+                data[key].push(value);
+            } else {
+                data[key] = value;
+            }
+        });
+
+        // Ensure riskFactors is an array if no options were selected
+        if (!data.riskFactors) {
+            data.riskFactors = [];
+        }
+        
+        const reviewHTML = `
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <h4 style="margin-bottom: 15px; color: #324047;">ข้อมูลส่วนตัว</h4>
+                <p><strong>ชื่อ-นามสกุล:</strong> ${data.title || ''} ${data.firstName || ''} ${data.lastName || ''}</p>
+                <p><strong>เลขบัตรประชาชน:</strong> ${data.idCard || ''}</p>
+                <p><strong>วันเกิด:</strong> ${data.birthDate || ''}</p>
+                <p><strong>เพศ:</strong> ${data.gender === 'male' ? 'ชาย' : data.gender === 'female' ? 'หญิง' : ''}</p>
+                <p><strong>โทรศัพท์:</strong> ${data.phone || ''}</p>
+                <p><strong>อีเมล:</strong> ${data.email || 'ไม่ได้ระบุ'}</p>
+            </div>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <h4 style="margin-bottom: 15px; color: #324047;">ผู้ติดต่อฉุกเฉิน</h4>
+                <p><strong>ชื่อ:</strong> ${data.emergencyContact || ''}</p>
+                <p><strong>ความสัมพันธ์:</strong> ${data.relationship || ''}</p>
+                <p><strong>โทรศัพท์:</strong> ${data.emergencyPhone || ''}</p>
+            </div>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <h4 style="margin-bottom: 15px; color: #324047;">ข้อมูลสุขภาพ</h4>
+                <p><strong>โรคประจำตัว:</strong> ${data.chronicDisease === 'yes' ? 'มี (' + (data.chronicDiseaseList || 'ไม่ได้ระบุ') + ')' : 'ไม่มี'}</p>
+                <p><strong>แพ้ยา:</strong> ${data.drugAllergy === 'yes' ? 'มี (' + (data.drugAllergyList || 'ไม่ได้ระบุ') + ')' : 'ไม่มี'}</p>
+                <p><strong>ประวัติครอบครัว:</strong> ${data.familyHistory === 'yes' ? 'มี (' + (data.familyMember || 'ไม่ได้ระบุ') + ')' : data.familyHistory === 'no' ? 'ไม่มี' : 'ไม่แน่ใจ'}</p>
+                <p><strong>ปัจจัยเสี่ยง:</strong> ${data.riskFactors && data.riskFactors.length > 0 && !(data.riskFactors.length === 1 && data.riskFactors[0] === 'none') ? data.riskFactors.filter(rf => rf !== 'none').join(', ') : 'ไม่มี'}</p>
+                <p><strong>หมายเหตุ:</strong> ${data.additionalNotes || 'ไม่มี'}</p>
+            </div>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 12px;">
+                <h4 style="margin-bottom: 15px; color: #324047;">บัญชีผู้ใช้</h4>
+                <p><strong>ชื่อผู้ใช้:</strong> ${data.username || data.idCard || ''}</p>
+                <p><strong>ยินยอมการใช้ข้อมูล:</strong> ${document.getElementById('consentToDataUsage').checked ? 'ยินยอม' : 'ไม่ยินยอม'}</p>
+            </div>
+        `;
+        
+        document.getElementById('reviewData').innerHTML = reviewHTML;
+    }
+
+    // Toggle functions for conditional fields
+    function toggleChronicDisease(hasDisease) {
+        const detailsField = document.getElementById('chronicDiseaseDetails');
+        detailsField.classList.toggle('show', hasDisease);
+    }
+
+    function toggleDrugAllergy(hasAllergy) {
+        const detailsField = document.getElementById('drugAllergyDetails');
+        detailsField.classList.toggle('show', hasAllergy);
+    }
+
+    function toggleFamilyHistory(hasHistory) {
+        const detailsField = document.getElementById('familyHistoryDetails');
+        detailsField.classList.toggle('show', hasHistory);
+    }
+
+    // Password visibility toggle
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const toggle = input.parentElement.querySelector('.password-toggle-text');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            toggle.textContent = '🙈';
+        } else {
+            input.type = 'password';
+            toggle.textContent = '👁️';
+        }
+    }
+
+    // Password strength checker
+    function checkPasswordStrength(password) {
+        let score = 0;
+        const requirements = {
+            length: password.length >= 8,
+            letter: /[a-zA-Z]/.test(password),
+            number: /\d/.test(password),
+            special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(password) // Fixed special char regex
+        };
+
+        Object.keys(requirements).forEach(req => {
+            const element = document.getElementById(`req-${req}`);
+            if (element) {
+                element.classList.toggle('valid', requirements[req]);
+            }
+        });
+
+        Object.values(requirements).forEach(met => {
+            if (met) score++;
+        });
+
+        const strengthFill = document.getElementById('strengthFill');
+        const strengthText = document.getElementById('strengthText');
+        
+        if (strengthFill && strengthText) {
+            strengthFill.className = 'strength-fill';
+            strengthText.className = 'strength-text';
+            
+            if (score === 0) { // Even if empty, it's weak.
+                strengthText.textContent = 'ความแข็งแกร่ง: อ่อนแอ';
+                strengthText.classList.add('weak');
+                strengthFill.classList.add('weak'); // Show minimal bar for weak
+                strengthFill.style.width = '10%'; // Or 0%
+            } else if (score <= 2) { // 1 or 2 criteria met
+                strengthFill.classList.add('weak');
+                strengthText.classList.add('weak');
+                strengthText.textContent = 'ความแข็งแกร่ง: อ่อนแอ';
+                 strengthFill.style.width = '25%';
+            } else if (score === 3) {
+                strengthFill.classList.add('fair');
+                strengthText.classList.add('fair');
+                strengthText.textContent = 'ความแข็งแกร่ง: ปานกลาง';
+                 strengthFill.style.width = '50%';
+            } else if (score === 4) { // All criteria met
+                strengthFill.classList.add('strong');
+                strengthText.classList.add('strong');
+                strengthText.textContent = 'ความแข็งแกร่ง: แข็งแกร่ง';
+                strengthFill.style.width = '100%';
+            }
+        }
+        return score >= 4; // For validation: isStrongPassword
+    }
+
+
+    function isStrongPassword(password) { // Re-added this validator
+        return /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password);
+    }
+
+
+    // Check password match
+    function checkPasswordMatch() {
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const matchIndicator = document.getElementById('passwordMatch');
+        
+        if (password && confirmPassword && matchIndicator) { // check confirmPassword.value only if it's not empty
+             if (confirmPassword.value) { // Only show status if confirm has input
+                const isMatch = password.value === confirmPassword.value;
+                matchIndicator.classList.toggle('valid', isMatch);
+                matchIndicator.querySelector('.match-text').textContent = 
+                    isMatch ? 'รหัสผ่านตรงกัน' : 'รหัสผ่านไม่ตรงกัน';
+                matchIndicator.style.display = 'flex';
+             } else {
+                matchIndicator.style.display = 'none'; // Hide if confirm is empty
+             }
+        }
+    }
+
+    // Navigation functions
+    function goToLogin() {
+        if (confirm('คุณต้องการยกเลิกการลงทะเบียนและกลับไปหน้าเข้าสู่ระบบหรือไม่?')) {
+            window.location.href = 'index.html';
+        }
+    }
+
+    // Show Alert Message
+    function showAlert(message, type = 'error') {
+        const alertBox = document.getElementById('alertBox');
+        const alertMessage = document.getElementById('alertMessage');
+        
+        alertBox.className = `alert alert-${type} show`;
+        alertMessage.innerHTML = message; // Use innerHTML to render <br> if needed
+        
+        setTimeout(() => {
+            alertBox.classList.remove('show');
+        }, 5000); // Keep alert for 5 seconds, adjust if needed
+    }
+
+    // Validation functions
+    function isValidEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+    
+    function isValidIdCard(idCard) {
+        const cleanIdCard = idCard.replace(/-/g, '');
+        if (!/^\d{13}$/.test(cleanIdCard)) {
+            return false;
+        }
+        let sum = 0;
+        for (let i = 0; i < 12; i++) {
+            sum += parseInt(cleanIdCard.charAt(i)) * (13 - i);
+        }
+        const checkDigit = (11 - (sum % 11)) % 10;
+        return checkDigit === parseInt(cleanIdCard.charAt(12));
+    }
+    
+    function isValidPhone(phone) {
+        return /^0\d{9}$/.test(phone);
+    }
+
+    // Auto-format ID card
+    document.querySelector('input[name="idCard"]').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        let formattedValue = '';
+        if (value.length > 0) {
+            formattedValue += value.substring(0, 1);
+            if (value.length > 1) formattedValue += '-' + value.substring(1, 5);
+            if (value.length > 5) formattedValue += '-' + value.substring(5, 10);
+            if (value.length > 10) formattedValue += '-' + value.substring(10, 12);
+            if (value.length > 12) formattedValue += '-' + value.substring(12, 13);
+        }
+        e.target.value = formattedValue;
+    });
+    
+    // Phone number formatting
+    const phoneInputs = document.querySelectorAll('input[type="tel"]');
+    phoneInputs.forEach(input => {
+        input.addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '').substr(0, 10);
+        });
+    });
+
+    // Handle "none" checkbox exclusivity for risk factors
+    document.addEventListener('change', function(e) {
+        if (e.target.name === 'riskFactors') {
+            const noneCheckbox = document.querySelector('input[name="riskFactors"][value="none"]');
+            const otherCheckboxes = document.querySelectorAll('input[name="riskFactors"]:not([value="none"])');
+            
+            if (e.target.value === 'none' && e.target.checked) {
+                otherCheckboxes.forEach(cb => cb.checked = false);
+            } else if (e.target.value !== 'none' && e.target.checked) {
+                if (noneCheckbox) noneCheckbox.checked = false;
+            }
+        }
+    });
+
+    // Form validation and submission
+    document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        console.log('🚀 Starting registration process...');
+        
+        if (!isConnected) {
+            const connected = await testConnection();
+            if (!connected) {
+                showAlert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบการเชื่อมต่อ', 'error');
+                return;
+            }
+        }
+        
+        const submitButton = document.getElementById('submitButton');
+        // const buttonText = submitButton.querySelector('.button-text'); // Not directly used for text change in success
+        submitButton.classList.add('loading');
+        submitButton.disabled = true;
+        
+        let registrationSuccessful = false; 
+        let response; // Declare response and responseData here to be accessible in finally if needed for some logic
+        let responseData;
+
+        try {
+            const form = this; 
+            const formDataInstance = new FormData(form); // Renamed to avoid conflict
+            const data = {};
+
+            formDataInstance.forEach((value, key) => {
+                if (key === 'riskFactors') { // Handle multi-select checkboxes
+                    if (!data[key]) {
+                        data[key] = [];
+                    }
+                    data[key].push(value);
+                } else {
+                    data[key] = value;
+                }
+            });
+            
+            // --- Data Cleaning and Type Conversion for Submission ---
+            if (data.riskFactors) {
+                if (!Array.isArray(data.riskFactors)) {
+                    data.riskFactors = [data.riskFactors];
+                }
+                const noneIndex = data.riskFactors.indexOf("none");
+                if (noneIndex !== -1) {
+                    data.riskFactors = data.riskFactors.length > 1 ? data.riskFactors.filter(rf => rf !== "none") : [];
+                }
+            } else {
+                data.riskFactors = [];
+            }
+
+            // Weight, Height, BloodType are removed from form as per user request.
+            // Backend will likely reject due to missing required fields.
+            // if (data.weight) data.weight = parseFloat(data.weight); // Example if it were present
+            // data.height = data.height ? parseFloat(data.height) : null; // Example
+            // data.bloodType = data.bloodType || null; // Example
+
+
+            if (data.idCard) data.idCard = data.idCard.replace(/-/g, '');
+            
+            const consentCheckbox = document.getElementById('consentToDataUsage');
+            data.consentToDataUsage = consentCheckbox ? consentCheckbox.checked : false;
+
+            if (data.username === '') data.username = null;
+
+            if (data.chronicDisease !== 'yes') data.chronicDiseaseList = null; else data.chronicDiseaseList = data.chronicDiseaseList || null;
+            if (data.drugAllergy !== 'yes') data.drugAllergyList = null; else data.drugAllergyList = data.drugAllergyList || null;
+            if (data.familyHistory !== 'yes') data.familyMember = null; else data.familyMember = data.familyMember || null;
+            
+            data.additionalNotes = data.additionalNotes || null;
+
+
+            // REMOVE fields not expected by backend's primary User/PatientProfile registration part,
+            // or ensure they are fine to send.
+            // Backend /api/auth/register expects: title, firstName, lastName, idCard, birthDate, gender, 
+            // bloodType, weight, height, phone, email, lineId, emergencyContact, relationship,
+            // emergencyPhone, chronicDisease, chronicDiseaseList, drugAllergy, drugAllergyList, consentToDataUsage,
+            // username, password, confirmPassword, etc.
+            // The `data` object should align with these as much as possible from what's collected.
+
+            console.log('🚀 Sending registration data to backend:', JSON.stringify(data, null, 2));
+            
+            response = await fetch(`${API_BASE_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(data)
+            });
+            
+            responseData = await response.json(); 
+            console.log('📥 Response status:', response.status, 'Data:', responseData);
+            
+            if (response.ok && responseData.success) {
+                registrationSuccessful = true;
+                updateProgressStep(3); 
+                document.querySelectorAll('.step').forEach(s => s.classList.add('completed'));
+
+                let successMsg = `ลงทะเบียนสำเร็จ! ยินดีต้อนรับคุณ ${responseData.user.firstName || data.firstName} ${responseData.user.lastName || data.lastName} เข้าสู่ระบบ GTMS`;
+                if (responseData.user && responseData.user.hn) successMsg += ` (HN: ${responseData.user.hn})`;
+                if (responseData.user && responseData.user.username) successMsg += ` (Username: ${responseData.user.username})`;
+                showAlert(successMsg, 'success');
+                
+                submitButton.style.display = 'none';
+                document.getElementById('prevButton').style.display = 'none';
+                document.getElementById('nextButton').style.display = 'none';
+
+                const loginButtonContainer = document.querySelector('.button-group');
+                const existingCancelButton = loginButtonContainer.querySelector('button[onclick="goToLogin()"]');
+                if(existingCancelButton) existingCancelButton.remove();
+
+                const goToLoginBtn = document.createElement('button');
+                goToLoginBtn.textContent = 'ไปที่หน้าเข้าสู่ระบบ';
+                goToLoginBtn.className = 'button button-primary';
+                goToLoginBtn.style.flex = '1';
+                goToLoginBtn.onclick = () => { window.location.href = 'index.html'; };
+                loginButtonContainer.appendChild(goToLoginBtn);
+                
+            } else {
+                let errorMessage = responseData.message || 'เกิดข้อผิดพลาดในการลงทะเบียน';
+                if (responseData.code) {
+                    switch(responseData.code) {
+                        case 'MISSING_REQUIRED_FIELDS':
+                            errorMessage = `<b>ข้อมูลไม่ครบถ้วน:</b> ${responseData.message || 'กรุณากรอกข้อมูลที่จำเป็นทั้งหมด.'} <br><small>หมายเหตุ: ระบบต้องการข้อมูล ส่วนสูง และ กรุ๊ปเลือด ด้วย ซึ่งปัจจุบันไม่ได้อยู่ในฟอร์มนี้</small>`;
+                            break;
+                        case 'INVALID_ID_CARD': errorMessage = 'เลขบัตรประชาชนไม่ถูกต้อง'; break;
+                        case 'INVALID_EMAIL': errorMessage = 'รูปแบบอีเมลไม่ถูกต้อง'; break;
+                        case 'INVALID_PHONE': errorMessage = 'รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง'; break;
+                        case 'PASSWORD_MISMATCH': errorMessage = 'รหัสผ่านไม่ตรงกัน'; break;
+                        case 'PASSWORD_TOO_SHORT': errorMessage = 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร'; break;
+                        case 'PASSWORD_WEAK': errorMessage = 'รหัสผ่านต้องประกอบด้วยตัวอักษร ตัวเลข และอักษรพิเศษ'; break;
+                        case 'USER_ALREADY_EXISTS': case 'DUPLICATE_ENTRY':
+                            errorMessage = 'ผู้ใช้นี้ (เลขบัตรประชาชนหรือชื่อผู้ใช้) ได้ลงทะเบียนในระบบแล้ว'; break;
+                        case 'CONSENT_REQUIRED': errorMessage = 'กรุณายอมรับเงื่อนไขการใช้ข้อมูลส่วนบุคคล'; break;
+                        default: errorMessage = `เกิดข้อผิดพลาด: ${responseData.message || responseData.code}`;
+                    }
+                }
+                throw new Error(errorMessage);
+            }
+            
+        } catch (error) {
+            console.error('❌ Registration error:', error);
+            let displayErrorMessage = error.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+            if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                displayErrorMessage = 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต';
+                isConnected = false; 
+                showConnectionStatus('disconnected', '❌ สูญเสียการเชื่อมต่อ');
+            }
+            showAlert(displayErrorMessage, 'error');
+        } finally {
+            if (!registrationSuccessful) {
+                if (submitButton) { 
+                    submitButton.classList.remove('loading');
+                    submitButton.disabled = false;
+                }
+            }
+        }
+    });
+
+    // Initialize on page load
+    window.addEventListener('load', async () => {
+        console.log('🚀 GTMS Registration System Starting...');
+        await testConnection();
+        showStep(1);
+
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function() {
+                checkPasswordStrength(this.value);
+                checkPasswordMatch();
+            });
+        }
+        if (confirmPasswordInput) {
+            confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+        }
+        console.log('✅ Registration system initialized');
+    });
+
+    document.addEventListener('visibilitychange', async () => {
+        if (!document.hidden && isConnected === false) {
+            await testConnection();
+        }
+    });
+
+    setInterval(async () => {
+        if (!isConnected) { // Only test if currently marked as disconnected
+            await testConnection();
+        }
+    }, 30000);
+
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        window.gtmsRegistrationDebug = {
+            testConnection, isValidIdCard, isValidEmail, isValidPhone,
+            isStrongPassword, showAlert, nextStep, previousStep, currentStep: () => currentStep
+        };
+        console.log('🔧 GTMS Registration Debug functions available in window.gtmsRegistrationDebug');
+    }
+</script>
+</body>
+</html>

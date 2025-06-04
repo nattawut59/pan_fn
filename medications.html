@@ -1,0 +1,2439 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการยาและการรักษา - GTMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00A8A8;
+            --primary-dark: #007878;
+            --primary-light: #E0F2F1;
+            --secondary: #00CECE;
+            --dark: #324047;
+            --gray: #6B7280;
+            --light-gray: #F3F4F6;
+            --white: #FFFFFF;
+            --error: #EF4444;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --info: #3B82F6;
+            --border: #E5E7EB;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background-color: #F9FAFB;
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        /* Layout */
+        .layout {
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background-color: var(--white);
+            height: 100vh;
+            position: fixed;
+            box-shadow: var(--shadow);
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 20;
+            background: var(--primary);
+            color: var(--white);
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        .logo-container {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background-color: var(--primary-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .logo-subtitle {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .menu {
+            padding: 20px 0;
+            overflow-y: auto;
+            max-height: calc(100vh - 91px);
+        }
+
+        .menu-label {
+            padding: 0 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--gray);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        /* Header */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .notifications-btn {
+            background: var(--white);
+            border: 1px solid var(--border);
+            color: var(--gray);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .notifications-indicator {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            background-color: var(--error);
+            border-radius: 50%;
+            border: 2px solid var(--white);
+            display: none;
+        }
+
+        .user-dropdown {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 6px 8px 6px 6px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: var(--primary-light);
+            border-radius: 50%;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card-action {
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            font-weight: 500;
+            color: var(--gray);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: var(--primary);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* Medication Schedule */
+        .schedule-container {
+            margin-bottom: 24px;
+        }
+
+        .day-schedule {
+            margin-bottom: 24px;
+        }
+
+        .day-header {
+            background-color: var(--primary-light);
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .day-title {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .day-subtitle {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .time-slot {
+            border-left: 3px solid var(--primary);
+            padding: 16px;
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+        }
+
+        .time-slot-header {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .time-slot-label {
+            font-size: 16px;
+            color: var(--dark);
+        }
+
+        .time-slot-time {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .medication-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .medication-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .medication-item:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .medication-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--primary);
+        }
+
+        .medication-info {
+            flex: 1;
+        }
+
+        .medication-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .medication-details {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .medication-action {
+            display: flex;
+            gap: 8px;
+        }
+
+        .medication-btn {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .medication-btn.taken {
+            background-color: var(--success);
+            color: var(--white);
+        }
+
+        .medication-btn.skipped {
+            background-color: var(--error);
+            color: var(--white);
+        }
+
+        .medication-btn.disabled {
+            background-color: var(--light-gray);
+            color: var(--gray);
+            cursor: not-allowed;
+        }
+
+        .medication-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .medication-status.taken {
+            background-color: var(--success);
+            color: var(--white);
+        }
+
+        .medication-status.skipped {
+            background-color: var(--error);
+            color: var(--white);
+        }
+
+        .medication-status.pending {
+            background-color: var(--warning);
+            color: var(--white);
+        }
+
+        /* Medication Inventory */
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .inventory-card {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .inventory-card.depleted {
+            opacity: 0.7;
+        }
+
+        .inventory-header {
+            padding: 16px;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .inventory-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background-color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--primary);
+        }
+
+        .inventory-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .inventory-content {
+            padding: 16px;
+        }
+
+        .inventory-detail {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .inventory-label {
+            color: var(--gray);
+        }
+
+        .inventory-value {
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .inventory-progress {
+            margin-top: 16px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: var(--light-gray);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-value {
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 4px;
+        }
+
+        .progress-value.warning {
+            background-color: var(--warning);
+        }
+
+        .progress-value.danger {
+            background-color: var(--error);
+        }
+
+        .inventory-actions {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .inventory-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .inventory-btn.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .inventory-btn.outline {
+            background-color: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .inventory-btn.danger {
+            background-color: var(--error);
+            color: var(--white);
+        }
+
+        .inventory-btn:hover {
+            opacity: 0.9;
+        }
+
+        .inventory-depleted-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--error);
+            color: var(--white);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Medication History */
+        .history-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th {
+            text-align: left;
+            padding: 12px 16px;
+            background-color: var(--light-gray);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .history-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .history-table tr:hover {
+            background-color: var(--light-gray);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+
+        /* API Error */
+        .api-error {
+            background-color: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            display: none;
+        }
+
+        .api-error-icon {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(239, 68, 68, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--error);
+            flex-shrink: 0;
+        }
+
+        .api-error-content {
+            flex: 1;
+        }
+
+        .api-error-title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .api-error-message {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .api-error-retry {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background-color: var(--error);
+            color: var(--white);
+            transition: all 0.3s ease;
+        }
+
+        .api-error-retry:hover {
+            background-color: #dc2626;
+        }
+
+        /* Modal */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 500px;
+            background-color: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            font-size: 18px;
+            color: var(--gray);
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background-color: var(--gray);
+            color: var(--white);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .modal-btn.secondary {
+            background-color: var(--light-gray);
+            color: var(--dark);
+        }
+
+        .modal-btn.danger {
+            background-color: var(--error);
+            color: var(--white);
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .form-select,
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--dark);
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 168, 168, 0.1);
+        }
+
+        .form-help {
+            font-size: 13px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(0, 168, 168, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* User Menu Dropdown */
+        .user-menu {
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+            width: 200px;
+            z-index: 100;
+            display: none;
+        }
+
+        .user-menu.show {
+            display: block;
+        }
+
+        .user-menu-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-menu-item:hover {
+            background-color: var(--light-gray);
+        }
+
+        .user-menu-logout {
+            color: var(--error);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding-top: 60px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 8px;
+            }
+            
+            .inventory-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .day-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+            
+            .medication-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .medication-action {
+                margin-top: 12px;
+                width: 100%;
+            }
+            
+            .medication-btn {
+                flex: 1;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+    
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="logo-container">
+                <div class="logo">G</div>
+                <div class="logo-text">
+                    <div class="logo-title">GTMS</div>
+                    <div class="logo-subtitle">ระบบติดตามการรักษาโรคต้อหิน</div>
+                </div>
+            </div>
+            
+            <nav class="menu">
+                <p class="menu-label">หน้าหลัก</p>
+                <a href="dashboard.html" class="menu-item">
+                    <div class="menu-icon">📊</div>
+                    แดชบอร์ด
+                </a>
+                <a href="appointments.html" class="menu-item">
+                    <div class="menu-icon">📅</div>
+                    การนัดหมาย
+                </a>
+                
+                <p class="menu-label">การติดตามการรักษา</p>
+                <a href="iop-tracking.html" class="menu-item">
+                    <div class="menu-icon">👁️</div>
+                    ค่าความดันลูกตา
+                </a>
+                <a href="medications.html" class="menu-item active">
+                    <div class="menu-icon">💊</div>
+                    ยาและการรักษา
+                </a>
+                <a href="eye-tests.html" class="menu-item">
+                    <div class="menu-icon">📝</div>
+                    ผลการตรวจวัด
+                </a>
+                
+                <p class="menu-label">อื่นๆ</p>
+                <a href="profile.html" class="menu-item">
+                    <div class="menu-icon">👤</div>
+                    ข้อมูลส่วนตัว
+                </a>
+                <a href="notifications.html" class="menu-item">
+                    <div class="menu-icon">🔔</div>
+                    การแจ้งเตือน
+                </a>
+                <a href="documents.html" class="menu-item">
+                    <div class="menu-icon">📄</div>
+                    เอกสารทางการแพทย์
+                </a>
+                <a href="settings.html" class="menu-item">
+                    <div class="menu-icon">⚙️</div>
+                    ตั้งค่า
+                </a>
+                <a href="#" class="menu-item" onclick="logout()">
+                    <div class="menu-icon">🚪</div>
+                    ออกจากระบบ
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="api-error" id="apiError">
+                <div class="api-error-icon">⚠️</div>
+                <div class="api-error-content">
+                    <div class="api-error-title">ไม่สามารถโหลดข้อมูลได้</div>
+                    <div class="api-error-message" id="apiErrorMessage">กรุณาลองใหม่อีกครั้ง</div>
+                </div>
+                <button class="api-error-retry" onclick="loadCurrentTab()">ลองใหม่</button>
+            </div>
+
+            <div class="content-header">
+                <h1 class="page-title">ยาและการรักษา</h1>
+                
+                <div class="user-info">
+                    <button class="notifications-btn" onclick="location.href='notifications.html'">
+                        🔔
+                        <span class="notifications-indicator" id="notificationsIndicator"></span>
+                    </button>
+                    
+                    <div class="user-dropdown" onclick="toggleUserMenu()">
+                        <div class="user-avatar" id="userAvatar">-</div>
+                        <span class="user-name" id="userName">กำลังโหลด...</span>
+                        <span>▼</span>
+                    </div>
+
+                    <div class="user-menu" id="userMenu">
+                        <a href="profile.html" class="user-menu-item">
+                            <div class="menu-icon">👤</div>
+                            โปรไฟล์
+                        </a>
+                        <a href="settings.html" class="user-menu-item">
+                            <div class="menu-icon">⚙️</div>
+                            ตั้งค่า
+                        </a>
+                        <a href="#" class="user-menu-item user-menu-logout" onclick="logout()">
+                            <div class="menu-icon">🚪</div>
+                            ออกจากระบบ
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" data-tab="schedule" onclick="switchTab('schedule')">ตารางการใช้ยา</div>
+                <div class="tab" data-tab="inventory" onclick="switchTab('inventory')">ยาของฉัน</div>
+                <div class="tab" data-tab="history" onclick="switchTab('history')">ประวัติการใช้ยา</div>
+            </div>
+
+            <div id="scheduleTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">ตารางการใช้ยาประจำวัน</h2>
+                        <span class="card-action" onclick="showAddReminderModal()">+ เพิ่มการแจ้งเตือน</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="schedule-container" id="todaySchedule">
+                            <div class="empty-state" id="scheduleEmpty" style="display: none;">
+                                <div class="empty-state-icon">💊</div>
+                                <div class="empty-state-text">ไม่มีตารางการใช้ยาสำหรับวันนี้</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="inventoryTab" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">ยาของฉัน</h2>
+                        <span class="card-action" onclick="showAddMedicationModal()">+ เพิ่มยา</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="inventory-grid" id="medicationInventory">
+                            <div class="empty-state" id="inventoryEmpty" style="display: none;">
+                                <div class="empty-state-icon">💊</div>
+                                <div class="empty-state-text">ไม่มีรายการยา</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="historyTab" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">ประวัติการใช้ยา</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="history-container">
+                            <table class="history-table" id="medicationHistory">
+                                <thead>
+                                    <tr>
+                                        <th>วันที่</th>
+                                        <th>เวลา</th>
+                                        <th>ชื่อยา</th>
+                                        <th>สถานะ</th>
+                                        <th>หมายเหตุ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    </tbody>
+                            </table>
+                            <div class="empty-state" id="historyEmpty" style="display: none;">
+                                <div class="empty-state-icon">📝</div>
+                                <div class="empty-state-text">ไม่มีประวัติการใช้ยา</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal สำหรับเพิ่มยาใหม่ -->
+    <div class="modal-backdrop" id="addMedicationModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">เพิ่มยาใหม่</h2>
+                <button class="modal-close" onclick="closeModal('addMedicationModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="addMedicationForm">
+                    <div class="form-group">
+                        <label class="form-label">ชื่อยา</label>
+                        <input type="text" class="form-input" id="medicationName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">รายละเอียด</label>
+                        <input type="text" class="form-input" id="medicationDescription" placeholder="เช่น ความเข้มข้น, ขนาด">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ตาที่ใช้</label>
+                        <select class="form-select" id="medicationEye" required>
+                            <option value="both">ทั้งสองตา</option>
+                            <option value="left">ตาซ้าย</option>
+                            <option value="right">ตาขวา</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">จำนวนคงเหลือ (วัน)</label>
+                        <input type="number" class="form-input" id="medicationRemaining" min="1" value="30" required>
+                        <div class="form-help">จำนวนวันที่สามารถใช้ยาได้ตามปริมาณที่มี</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('addMedicationModal')">ยกเลิก</button>
+                <button class="modal-btn primary" id="saveMedicationBtn" onclick="addMedication()">
+                    <span id="saveMedicationSpinner" class="loading-spinner" style="display: none;"></span>
+                    บันทึก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับเพิ่มการแจ้งเตือน -->
+    <div class="modal-backdrop" id="addReminderModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">เพิ่มการแจ้งเตือน</h2>
+                <button class="modal-close" onclick="closeModal('addReminderModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="addReminderForm">
+                    <div class="form-group">
+                        <label class="form-label">ยา</label>
+                        <select class="form-select" id="reminderMedication" required>
+                            <option value="">เลือกยา</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">เวลา</label>
+                        <input type="time" class="form-input" id="reminderTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">วันในสัปดาห์</label>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;">
+                            <label style="display: flex; align-items: center; gap: 5px;">
+                                <input type="checkbox" id="dayMonday" checked> จันทร์
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 5px;">
+                                <input type="checkbox" id="dayTuesday" checked> อังคาร
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 5px;">
+                                <input type="checkbox" id="dayWednesday" checked> พุธ
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 5px;">
+                                <input type="checkbox" id="dayThursday" checked> พฤหัสบดี
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 5px;">
+                                <input type="checkbox" id="dayFriday" checked> ศุกร์
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 5px;">
+                                <input type="checkbox" id="daySaturday" checked> เสาร์
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 5px;">
+                                <input type="checkbox" id="daySunday" checked> อาทิตย์
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">หมายเหตุ</label>
+                        <input type="text" class="form-input" id="reminderNote" placeholder="เช่น หลังอาหาร, ก่อนนอน">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('addReminderModal')">ยกเลิก</button>
+                <button class="modal-btn primary" id="saveReminderBtn" onclick="addReminder()">
+                    <span id="saveReminderSpinner" class="loading-spinner" style="display: none;"></span>
+                    บันทึก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับบันทึกการใช้ยา -->
+    <div class="modal-backdrop" id="markMedicationModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="markMedicationTitle">บันทึกการใช้ยา</h2>
+                <button class="modal-close" onclick="closeModal('markMedicationModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="markMedicationForm">
+                    <div class="form-group">
+                        <label class="form-label">สถานะ</label>
+                        <select class="form-select" id="medicationStatus" required>
+                            <option value="taken">ได้รับยาแล้ว</option>
+                            <option value="skipped">ไม่ได้รับยา</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">หมายเหตุ</label>
+                        <input type="text" class="form-input" id="medicationNote" placeholder="เช่น ลืม, รู้สึกไม่สบาย">
+                    </div>
+                    <input type="hidden" id="medicationReminderId">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('markMedicationModal')">ยกเลิก</button>
+                <button class="modal-btn primary" id="saveMedicationStatusBtn" onclick="recordMedicationUsage()">
+                    <span id="saveMedicationStatusSpinner" class="loading-spinner" style="display: none;"></span>
+                    บันทึก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับแจ้งยาหมด -->
+    <div class="modal-backdrop" id="depleteMedicationModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">ยาหมด</h2>
+                <button class="modal-close" onclick="closeModal('depleteMedicationModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p>คุณต้องการยืนยันว่ายานี้หมดแล้วใช่หรือไม่?</p>
+                <input type="hidden" id="depleteMedicationId">
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('depleteMedicationModal')">ยกเลิก</button>
+                <button class="modal-btn danger" id="confirmDepleteBtn" onclick="markMedicationDepleted()">
+                    <span id="depleteMedicationSpinner" class="loading-spinner" style="display: none;"></span>
+                    ยืนยัน
+                </button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // Configuration
+    const API_BASE_URL = 'http://localhost:5001/api';
+    let patientData = null;
+    let currentMedications = [];
+    let medicationReminders = [];
+    let medicationUsageHistory = [];
+    let currentTab = 'schedule';
+    let selectedReminderForUsage = null;
+    let selectedInventoryIdForDeplete = null;
+
+    // Helper Functions
+    function getElement(id) {
+        const el = document.getElementById(id);
+        if (!el) console.warn(`Element with ID '${id}' not found.`);
+        return el;
+    }
+
+    function querySelector(selector) {
+        const el = document.querySelector(selector);
+        if (!el) console.warn(`Element with selector '${selector}' not found.`);
+        return el;
+    }
+
+    function toggleSidebar() {
+        const sidebar = getElement('sidebar');
+        if (sidebar) sidebar.classList.toggle('open');
+    }
+
+    function toggleUserMenu() {
+        const userMenu = getElement('userMenu');
+        if (userMenu) userMenu.classList.toggle('show');
+    }
+
+    // Close user menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const userDropdown = querySelector('.user-dropdown');
+        const userMenu = getElement('userMenu');
+        if (userDropdown && !userDropdown.contains(event.target) && userMenu && userMenu.classList.contains('show')) {
+            userMenu.classList.remove('show');
+        }
+    });
+
+    // Authentication Functions
+    function getAuthToken() {
+        const token = localStorage.getItem('gtms_token');
+        if (!token) {
+            console.error('No token found! Redirecting to login.');
+            window.location.href = 'index.html';
+            return null;
+        }
+        return token;
+    }
+
+    async function logout() {
+        const token = getAuthToken();
+        if (!token) return;
+        
+        try {
+            await fetch(`${API_BASE_URL}/auth/logout`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+            });
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+    }
+
+    // API Helper Function
+    async function fetchWithAuth(url, options = {}) {
+        const token = getAuthToken();
+        if (!token) throw new Error("Authentication token not found");
+        
+        const defaultOptions = {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        };
+        
+        const mergedOptions = {
+            ...defaultOptions,
+            ...options,
+            headers: { ...defaultOptions.headers, ...options.headers }
+        };
+        
+        const response = await fetch(url, mergedOptions);
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                await logout();
+                throw new Error("Session expired");
+            }
+            
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch (e) {
+                errorData = { message: `Request failed: ${response.statusText}` };
+            }
+            throw new Error(errorData.message || `API Error: ${response.status}`);
+        }
+        
+        return response.json();
+    }
+
+    // UI Helper Functions
+    function updateUserInfoUI(user) {
+        const userNameEl = getElement('userName');
+        const userAvatarEl = getElement('userAvatar');
+
+        if (user && userNameEl && userAvatarEl) {
+            const displayName = (user.firstName && user.lastName) 
+                ? `${user.firstName} ${user.lastName}` 
+                : user.username || 'ผู้ใช้';
+            userNameEl.textContent = displayName;
+            userAvatarEl.textContent = displayName.charAt(0).toUpperCase();
+        }
+    }
+    
+    function showApiError(message, retryAction = null) {
+        console.error(`API Error: ${message}`);
+        const apiErrorDiv = getElement('apiError');
+        const apiErrorMessageEl = getElement('apiErrorMessage');
+        const retryButton = apiErrorDiv ? apiErrorDiv.querySelector('.api-error-retry') : null;
+
+        if (apiErrorMessageEl) apiErrorMessageEl.textContent = message;
+        if (apiErrorDiv) {
+            apiErrorDiv.style.display = 'flex';
+            if (retryButton) {
+                if (typeof retryAction === 'function') {
+                    retryButton.onclick = retryAction;
+                } else if (typeof retryAction === 'string') {
+                    retryButton.onclick = () => window[retryAction]();
+                }
+            }
+        }
+    }
+
+    function hideApiError() {
+        const apiErrorDiv = getElement('apiError');
+        if (apiErrorDiv) apiErrorDiv.style.display = 'none';
+    }
+
+    function formatThaiDateShort(dateString) {
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString;
+            return date.toLocaleDateString('th-TH', { 
+                day: 'numeric', 
+                month: 'short', 
+                year: 'numeric' 
+            });
+        } catch (e) { 
+            return dateString; 
+        }
+    }
+
+    function formatTime(timeString) {
+        if (!timeString) return '-';
+        try {
+            // Handle both full datetime and time-only strings
+            let timeOnly;
+            if (timeString.includes('T')) {
+                // Full datetime string
+                timeOnly = new Date(timeString).toTimeString().split(' ')[0];
+            } else {
+                // Time-only string
+                timeOnly = timeString;
+            }
+            const parts = timeOnly.split(':');
+            return `${parts[0]}:${parts[1]} น.`;
+        } catch (e) {
+            return timeString;
+        }
+    }
+    
+    function getThaiMonthName(monthIndex) {
+        const monthNames = [
+            'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+            'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+        ];
+        return monthNames[monthIndex];
+    }
+
+    function getThaiDayName(dayIndex) {
+        const dayNames = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+        return dayNames[dayIndex];
+    }
+
+    // Load User Profile
+    async function loadUserProfileAndInit() {
+        const token = getAuthToken();
+        if (!token) return;
+        
+        hideApiError();
+
+        // Try to load from localStorage first
+        const storedUserJson = localStorage.getItem('gtms_user');
+        if (storedUserJson) {
+            try {
+                const parsedUser = JSON.parse(storedUserJson);
+                if (parsedUser && parsedUser.id) {
+                    patientData = parsedUser;
+                    updateUserInfoUI(patientData);
+                    await loadCurrentTab();
+                    await checkNotificationsCount();
+                    return;
+                }
+            } catch (e) {
+                localStorage.removeItem('gtms_user');
+            }
+        }
+
+        // Fetch from API
+        try {
+            const response = await fetchWithAuth(`${API_BASE_URL}/auth/me`);
+            
+            if (response && response.user && response.user.id) {
+                patientData = response.user;
+                localStorage.setItem('gtms_user', JSON.stringify(patientData));
+                updateUserInfoUI(patientData);
+                await loadCurrentTab();
+                await checkNotificationsCount();
+            } else {
+                throw new Error('Invalid user data structure');
+            }
+        } catch (error) {
+            console.error('Error loading user profile:', error);
+            showApiError(`ไม่สามารถโหลดข้อมูลโปรไฟล์ได้: ${error.message}`, logout);
+        }
+    }
+
+    // Tab Management
+    function switchTab(tabName) {
+        currentTab = tabName;
+        
+        // Update UI
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.style.display = 'none';
+        });
+        document.querySelectorAll('.tab').forEach(tabEl => {
+            tabEl.classList.remove('active');
+        });
+
+        const activeTabContent = getElement(`${tabName}Tab`);
+        const activeTabButton = querySelector(`.tab[data-tab="${tabName}"]`);
+
+        if (activeTabContent) activeTabContent.style.display = 'block';
+        if (activeTabButton) activeTabButton.classList.add('active');
+        
+        if (patientData && patientData.id) {
+            loadCurrentTab();
+        }
+    }
+
+    async function loadCurrentTab() {
+        hideApiError();
+        if (!patientData || !patientData.id) {
+            await loadUserProfileAndInit();
+            return;
+        }
+
+        console.log(`Loading data for tab: ${currentTab}`);
+        
+        try {
+            if (currentTab === 'schedule') {
+                await loadMedicationSchedule();
+            } else if (currentTab === 'inventory') {
+                await loadMedicationInventory();
+            } else if (currentTab === 'history') {
+                await loadMedicationHistory();
+            }
+        } catch (error) {
+            console.error(`Error loading ${currentTab} data:`, error);
+            showApiError(`ไม่สามารถโหลดข้อมูล${currentTab}ได้: ${error.message}`, 'loadCurrentTab');
+        }
+    }
+
+    // Medication Schedule Functions
+    async function loadMedicationSchedule() {
+        const scheduleContainer = getElement('todaySchedule');
+        const scheduleEmptyEl = getElement('scheduleEmpty');
+        
+        if (!scheduleContainer || !scheduleEmptyEl) return;
+
+        // Show loading
+        scheduleContainer.innerHTML = '<div style="display:flex; justify-content:center; padding:20px;"><div class="loading-spinner"></div>กำลังโหลด...</div>';
+        scheduleEmptyEl.style.display = 'none';
+
+        try {
+            // Fetch medication reminders
+            const remindersResponse = await fetchWithAuth(`${API_BASE_URL}/patient/medication-reminders`);
+            medicationReminders = remindersResponse.reminders || [];
+
+            // Get today's date info
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            const daysOfWeekMap = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const currentDayName = daysOfWeekMap[today.getDay()];
+
+            // Filter reminders for today
+            const todayReminders = medicationReminders.filter(r => {
+                if (!r || !r.start_date || !r.reminder_time) return false;
+                
+                try {
+                    const startDate = new Date(r.start_date);
+                    startDate.setHours(0, 0, 0, 0);
+                    const endDate = r.end_date ? new Date(r.end_date) : null;
+                    if (endDate) endDate.setHours(0, 0, 0, 0);
+
+                    // Check date range
+                    let isActiveOnDate = (startDate <= today);
+                    if (endDate && endDate < today) isActiveOnDate = false;
+                    
+                    // Check day of week
+                    let isActiveOnDay = false;
+                    if (r.days_of_week) {
+                        const activeDays = String(r.days_of_week).toLowerCase().split(',');
+                        if (activeDays.includes('everyday') || activeDays.includes(currentDayName)) {
+                            isActiveOnDay = true;
+                        }
+                    } else {
+                        isActiveOnDay = true;
+                    }
+                    
+                    return isActiveOnDate && isActiveOnDay && (r.is_active !== 0);
+                } catch (dateError) {
+                    console.warn("Error processing reminder date:", r, dateError);
+                    return false;
+                }
+            });
+
+            // Get today's usage records
+            let usageMap = new Map();
+            try {
+                const usageResponse = await fetchWithAuth(`${API_BASE_URL}/patient/medication-usage?period=1&date=${todayStr}`);
+                if (usageResponse && usageResponse.records) {
+                    usageResponse.records.forEach(rec => {
+                        if (rec.reminder_id) usageMap.set(rec.reminder_id, rec);
+                    });
+                }
+            } catch (usageError) {
+                console.warn("Could not load usage records:", usageError);
+            }
+
+            // Clear container
+            scheduleContainer.innerHTML = '';
+            
+            if (todayReminders.length === 0) {
+                scheduleEmptyEl.style.display = 'block';
+                return;
+            }
+
+            // Group by time periods
+            const timeGroups = {
+                morning: { label: 'เช้า (05:00-11:59)', items: [] },
+                afternoon: { label: 'กลางวัน (12:00-16:59)', items: [] },
+                evening: { label: 'เย็น (17:00-21:59)', items: [] },
+                night: { label: 'ก่อนนอน (22:00-04:59)', items: [] }
+            };
+
+            todayReminders.sort((a, b) => String(a.reminder_time).localeCompare(String(b.reminder_time)));
+
+            todayReminders.forEach(reminder => {
+                const hour = parseInt(String(reminder.reminder_time).split(':')[0]);
+                if (hour >= 5 && hour < 12) timeGroups.morning.items.push(reminder);
+                else if (hour >= 12 && hour < 17) timeGroups.afternoon.items.push(reminder);
+                else if (hour >= 17 && hour < 22) timeGroups.evening.items.push(reminder);
+                else timeGroups.night.items.push(reminder);
+            });
+
+            // Create day header
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'day-header';
+            dayHeader.innerHTML = `
+                <div class="day-title">วัน${getThaiDayName(today.getDay())}ที่ ${today.getDate()} ${getThaiMonthName(today.getMonth())} ${today.getFullYear() + 543}</div>
+            `;
+            scheduleContainer.appendChild(dayHeader);
+
+            // Render time groups
+            let hasAnyReminders = false;
+            Object.values(timeGroups).forEach(group => {
+                if (group.items.length > 0) {
+                    hasAnyReminders = true;
+                    const timeSlotEl = document.createElement('div');
+                    timeSlotEl.className = 'time-slot';
+                    timeSlotEl.innerHTML = `
+                        <div class="time-slot-header">
+                            <div class="time-slot-label">${group.label}</div>
+                        </div>
+                    `;
+                    
+                    const listEl = document.createElement('div');
+                    listEl.className = 'medication-list';
+                    
+                    group.items.forEach(r => {
+                        const usage = usageMap.get(r.reminder_id);
+                        const status = usage ? usage.status : 'pending';
+                        const statusLabel = status === 'taken' ? 'ใช้แล้ว' : 
+                                          status === 'skipped' ? 'ข้าม' : 'รอดำเนินการ';
+                        const eyeDisplay = r.eye_display || 
+                                         (r.eye === 'both' ? 'ทั้งสองตา' : 
+                                          r.eye === 'left' ? 'ตาซ้าย' : 
+                                          r.eye === 'right' ? 'ตาขวา' : 'ไม่ระบุ');
+                        const medName = r.name || r.medication_name || 'ไม่ระบุชื่อยา';
+                        
+                        const itemEl = document.createElement('div');
+                        itemEl.className = 'medication-item';
+                        itemEl.innerHTML = `
+                            <div class="medication-icon">💊</div>
+                            <div class="medication-info">
+                                <div class="medication-name">${medName}</div>
+                                <div class="medication-details">${eyeDisplay} · ${formatTime(r.reminder_time)} ${r.dosage ? `· ${r.dosage}` : ''}</div>
+                                ${status !== 'pending' ? `
+                                    <div style="margin-top: 8px;">
+                                        <span class="medication-status ${status}">${statusLabel}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            ${status === 'pending' ? `
+                                <div class="medication-action">
+                                    <button class="medication-btn taken" onclick="showMarkMedicationModal('${r.reminder_id}', '${medName}', '${r.medication_id}', '${r.prescription_id}', '${r.eye}', ${r.drops_count || 1}, '${r.reminder_time}', 'taken')">ใช้แล้ว</button>
+                                    <button class="medication-btn skipped" onclick="showMarkMedicationModal('${r.reminder_id}', '${medName}', '${r.medication_id}', '${r.prescription_id}', '${r.eye}', ${r.drops_count || 1}, '${r.reminder_time}', 'skipped')">ข้าม</button>
+                                </div>
+                            ` : ''}
+                        `;
+                        listEl.appendChild(itemEl);
+                    });
+                    
+                    timeSlotEl.appendChild(listEl);
+                    scheduleContainer.appendChild(timeSlotEl);
+                }
+            });
+
+            if (!hasAnyReminders) {
+                scheduleEmptyEl.style.display = 'block';
+            }
+
+        } catch (error) {
+            console.error('Error loading medication schedule:', error);
+            scheduleContainer.innerHTML = '';
+            scheduleEmptyEl.style.display = 'block';
+            showApiError(`ไม่สามารถโหลดตารางการใช้ยาได้: ${error.message}`, 'loadMedicationSchedule');
+        }
+    }
+
+    // Medication Inventory Functions - แก้ไขให้ดึงข้อมูลจากหลาย endpoint
+    async function loadMedicationInventory() {
+        const inventoryGridEl = getElement('medicationInventory');
+        const inventoryEmptyEl = getElement('inventoryEmpty');
+        
+        if (!inventoryGridEl || !inventoryEmptyEl) return;
+
+        // Show loading
+        inventoryGridEl.innerHTML = '<div style="display:flex; justify-content:center; padding:20px;"><div class="loading-spinner"></div>กำลังโหลด...</div>';
+        inventoryEmptyEl.style.display = 'none';
+
+        try {
+            console.log('🔍 Loading medication inventory...');
+            
+            // ลองดึงข้อมูลจากหลาย endpoint
+            let currentMedications = [];
+            
+            // 1. ลองดึงจาก medication-inventory endpoint
+            try {
+                console.log('📊 Trying /patient/medication-inventory...');
+                const inventoryData = await fetchWithAuth(`${API_BASE_URL}/patient/medication-inventory`);
+                console.log('📊 Inventory response:', inventoryData);
+                if (inventoryData && inventoryData.inventory) {
+                    currentMedications = inventoryData.inventory;
+                    console.log('✅ Found inventory data:', currentMedications.length, 'items');
+                }
+            } catch (invError) {
+                console.warn('⚠️ Inventory endpoint failed:', invError.message);
+            }
+            
+            // 2. ถ้าไม่มีข้อมูล ลองดึงจาก medications endpoint (ยาที่หมอสั่ง)
+            if (currentMedications.length === 0) {
+                try {
+                    console.log('📋 Trying /patient/medications...');
+                    const medicationsData = await fetchWithAuth(`${API_BASE_URL}/patient/medications`);
+                    console.log('📋 Medications response:', medicationsData);
+                    
+                    if (medicationsData && medicationsData.medications) {
+                        // แปลงข้อมูลยาที่หมอสั่งให้เป็นรูปแบบ inventory
+                        currentMedications = medicationsData.medications.map(med => ({
+                            inventory_id: `pm_${med.prescription_id}`,
+                            patient_id: med.patient_id,
+                            medication_id: med.medication_id,
+                            name: med.name,
+                            image_url: med.image_url,
+                            description: med.description,
+                            strength: med.strength,
+                            eye: med.eye,
+                            eye_display: med.eye === 'both' ? 'ทั้งสองตา' : 
+                                        med.eye === 'left' ? 'ตาซ้าย' : 
+                                        med.eye === 'right' ? 'ตาขวา' : 'ไม่ระบุ',
+                            dosage: med.dosage,
+                            frequency: med.frequency,
+                            is_depleted: 0,
+                            days_remaining: null,
+                            alert_level: 'unknown',
+                            source: 'prescription'
+                        }));
+                        console.log('✅ Converted medications to inventory format:', currentMedications.length, 'items');
+                    }
+                } catch (medError) {
+                    console.warn('⚠️ Medications endpoint failed:', medError.message);
+                }
+            }
+            
+            // 3. ถ้ายังไม่มีข้อมูล ลองดึงจาก dashboard endpoint (เผื่อมีข้อมูลส่วนกลาง)
+            if (currentMedications.length === 0) {
+                try {
+                    console.log('🏠 Trying /patient/dashboard...');
+                    const dashboardData = await fetchWithAuth(`${API_BASE_URL}/patient/dashboard`);
+                    console.log('🏠 Dashboard response:', dashboardData);
+                    
+                    if (dashboardData && dashboardData.today_medications) {
+                        // แปลงข้อมูลจาก dashboard
+                        currentMedications = dashboardData.today_medications.map(med => ({
+                            inventory_id: `dash_${med.reminder_id || med.medication_id}`,
+                            medication_id: med.medication_id,
+                            name: med.name,
+                            image_url: med.image_url,
+                            eye: med.eye,
+                            eye_display: med.eye_display,
+                            dosage: med.dosage,
+                            is_depleted: 0,
+                            days_remaining: null,
+                            source: 'dashboard'
+                        }));
+                        console.log('✅ Found dashboard medications:', currentMedications.length, 'items');
+                    }
+                } catch (dashError) {
+                    console.warn('⚠️ Dashboard endpoint failed:', dashError.message);
+                }
+            }
+
+            inventoryGridEl.innerHTML = '';
+            
+            if (currentMedications.length === 0) {
+                console.log('❌ No medications found from any endpoint');
+                inventoryEmptyEl.style.display = 'block';
+                return;
+            }
+
+            console.log('🎯 Rendering', currentMedications.length, 'medications');
+
+            currentMedications.forEach((med, index) => {
+                console.log(`📦 Rendering medication ${index + 1}:`, med.name);
+                
+                const daysRemaining = med.days_remaining;
+                const eyeDisplay = med.eye_display || 
+                                 (med.eye === 'both' ? 'ทั้งสองตา' : 
+                                  med.eye === 'left' ? 'ตาซ้าย' : 
+                                  med.eye === 'right' ? 'ตาขวา' : 'ไม่ระบุ');
+                const medName = med.name || 'ชื่อยาไม่ระบุ';
+                const inventoryItemId = med.inventory_id;
+                
+                // Calculate progress percentage
+                const initialDays = 30;
+                const remainingPercentage = daysRemaining !== null ? 
+                    Math.max(0, Math.min(100, (daysRemaining / initialDays) * 100)) : 0;
+                
+                let progressClass = '';
+                if (daysRemaining !== null && daysRemaining <= 3) progressClass = 'danger';
+                else if (daysRemaining !== null && daysRemaining <= 7) progressClass = 'warning';
+
+                const cardEl = document.createElement('div');
+                cardEl.className = `inventory-card ${med.is_depleted === 1 ? 'depleted' : ''}`;
+                
+                // แยกการแสดงผลตามประเภทของยา
+                if (med.source === 'prescription' || med.source === 'dashboard') {
+                    // ยาที่หมอสั่งแต่ยังไม่ได้ตั้งค่าคลัง
+                    cardEl.innerHTML = `
+                        <div class="inventory-header">
+                            <div class="inventory-icon">💊</div>
+                            <div class="inventory-title">${medName}</div>
+                        </div>
+                        <div class="inventory-content">
+                            <div class="inventory-detail">
+                                <span class="inventory-label">ตาที่ใช้:</span> 
+                                <span class="inventory-value">${eyeDisplay}</span>
+                            </div>
+                            <div class="inventory-detail">
+                                <span class="inventory-label">ขนาดยา:</span> 
+                                <span class="inventory-value">${med.dosage || '-'}</span>
+                            </div>
+                            <div class="inventory-detail">
+                                <span class="inventory-label">ความถี่:</span> 
+                                <span class="inventory-value">${med.frequency || '-'}</span>
+                            </div>
+                            <p style="color:var(--warning); margin-top: 16px; font-size: 14px;">
+                                📋 ยานี้หมอสั่งให้แล้ว กรุณาตั้งค่าข้อมูลคลังยา
+                            </p>
+                            <div class="inventory-actions" style="margin-top: 16px;">
+                                <button class="inventory-btn primary" onclick="setupMedicationInventory('${inventoryItemId}', '${medName}')">ตั้งค่าคลังยา</button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // ยาที่มีในคลังแล้ว
+                    cardEl.innerHTML = `
+                        ${med.is_depleted === 1 ? '<div class="inventory-depleted-badge">ยาหมด</div>' : ''}
+                        <div class="inventory-header">
+                            <div class="inventory-icon">💊</div>
+                            <div class="inventory-title">${medName}</div>
+                        </div>
+                        <div class="inventory-content">
+                            <div class="inventory-detail">
+                                <span class="inventory-label">ตาที่ใช้:</span> 
+                                <span class="inventory-value">${eyeDisplay}</span>
+                            </div>
+                            <div class="inventory-detail">
+                                <span class="inventory-label">รายละเอียด:</span> 
+                                <span class="inventory-value">${med.description || med.strength || '-'}</span>
+                            </div>
+                            ${med.is_depleted !== 1 ? `
+                                <div class="inventory-progress">
+                                    <div class="progress-label">
+                                        <span>คงเหลือ:</span> 
+                                        <span>${daysRemaining !== null ? daysRemaining + ' วัน' : 'คำนวณไม่ได้'}</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-value ${progressClass}" style="width: ${remainingPercentage}%"></div>
+                                    </div>
+                                </div>
+                                <div class="inventory-actions">
+                                    ${daysRemaining !== null && daysRemaining <= 7 ? 
+                                        `<button class="inventory-btn primary" onclick="alert('ฟังก์ชันสั่งซื้อ/เติมยา ยังไม่พร้อมใช้งาน')">เติมยา</button>` : ''}
+                                    <button class="inventory-btn outline" onclick="showDepleteMedicationModal('${inventoryItemId}', '${medName}')">แจ้งยาหมด</button>
+                                </div>
+                            ` : `
+                                <p style="color:var(--error); margin-top: 16px;">ยานี้ถูกแจ้งว่าหมดแล้ว</p>
+                            `}
+                        </div>
+                    `;
+                }
+                inventoryGridEl.appendChild(cardEl);
+            });
+
+        } catch (error) {
+            console.error('❌ Error loading medication inventory:', error);
+            inventoryGridEl.innerHTML = '';
+            inventoryEmptyEl.style.display = 'block';
+            showApiError(`ไม่สามารถโหลดข้อมูลยาคงคลังได้: ${error.message}`, 'loadMedicationInventory');
+        }
+    }
+
+    // Medication History Functions
+    async function loadMedicationHistory() {
+        const historyTableBodyEl = getElement('medicationHistory')?.querySelector('tbody');
+        const historyEmptyEl = getElement('historyEmpty');
+        
+        if (!historyTableBodyEl || !historyEmptyEl) return;
+
+        // Show loading
+        historyTableBodyEl.innerHTML = '<tr><td colspan="5" style="text-align:center;"><div class="loading-spinner"></div>กำลังโหลด...</td></tr>';
+        historyEmptyEl.style.display = 'none';
+
+        try {
+            const data = await fetchWithAuth(`${API_BASE_URL}/patient/medication-usage`);
+            medicationUsageHistory = data.records || [];
+
+            historyTableBodyEl.innerHTML = '';
+            
+            if (medicationUsageHistory.length === 0) {
+                historyEmptyEl.style.display = 'block';
+                return;
+            }
+
+            medicationUsageHistory.sort((a, b) => 
+                new Date(b.actual_time || b.scheduled_time) - new Date(a.actual_time || a.scheduled_time)
+            );
+
+            medicationUsageHistory.forEach(record => {
+                const row = document.createElement('tr');
+                const scheduledDateTime = new Date(record.scheduled_time);
+                const statusDisplay = record.status === 'taken' ? 'ใช้แล้ว' : 
+                                    record.status === 'skipped' ? 'ข้าม' : 'รอดำเนินการ';
+
+                row.innerHTML = `
+                    <td>${formatThaiDateShort(scheduledDateTime.toISOString().split('T')[0])}</td>
+                    <td>${formatTime(scheduledDateTime.toTimeString())}</td>
+                    <td>${record.medication_name || 'ไม่ระบุ'}</td>
+                    <td><span class="medication-status ${record.status}">${statusDisplay}</span></td>
+                    <td>${record.notes || '-'}</td>
+                `;
+                historyTableBodyEl.appendChild(row);
+            });
+
+        } catch (error) {
+            console.error('Error loading medication history:', error);
+            historyTableBodyEl.innerHTML = '<tr><td colspan="5">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+            historyEmptyEl.style.display = 'block';
+            showApiError(`ไม่สามารถโหลดประวัติการใช้ยาได้: ${error.message}`, 'loadMedicationHistory');
+        }
+    }
+
+    // Modal Functions
+    function showModal(modalId) {
+        const modal = getElement(modalId);
+        if (modal) modal.style.display = 'flex';
+    }
+
+    function closeModal(modalId) {
+        const modal = getElement(modalId);
+        if (modal) modal.style.display = 'none';
+    }
+
+    // Add Medication Modal - แสดงยาที่หมอสั่งให้เลือกตั้งค่าคลัง
+    async function showAddMedicationModal() {
+        try {
+            // ดึงรายการยาที่หมอสั่งมาแต่ยังไม่มีในคลัง
+            const medicationsResponse = await fetchWithAuth(`${API_BASE_URL}/patient/medications`);
+            const inventoryResponse = await fetchWithAuth(`${API_BASE_URL}/patient/medication-inventory`);
+            
+            const allMedications = medicationsResponse.medications || [];
+            const currentInventory = inventoryResponse.inventory || [];
+            
+            // หายาที่ยังไม่มีในคลัง
+            const availableToAdd = allMedications.filter(med => 
+                !currentInventory.some(inv => 
+                    inv.prescription_id === med.prescription_id && inv.source !== 'prescription'
+                )
+            );
+            
+            if (availableToAdd.length === 0) {
+                alert('ยาที่หมอสั่งทั้งหมดมีในคลังแล้ว หรือไม่มียาที่หมอสั่ง');
+                return;
+            }
+            
+            // เปลี่ยน modal เป็นการเลือกยาจากที่หมอสั่ง
+            const modal = getElement('addMedicationModal');
+            const modalTitle = modal.querySelector('.modal-title');
+            const modalBody = modal.querySelector('.modal-body');
+            
+            modalTitle.textContent = 'เพิ่มยาเข้าคลัง';
+            modalBody.innerHTML = `
+                <form id="addMedicationForm">
+                    <div class="form-group">
+                        <label class="form-label">เลือกยาที่หมอสั่ง</label>
+                        <select class="form-select" id="prescriptionSelect" required>
+                            <option value="">เลือกยา</option>
+                            ${availableToAdd.map(med => 
+                                `<option value="${med.prescription_id}" data-name="${med.name || 'ไม่ระบุ'}">
+                                    ${med.name || 'ไม่ระบุ'} (${med.dosage || ''} - ${med.eye === 'both' ? 'ทั้งสองตา' : med.eye === 'left' ? 'ตาซ้าย' : 'ตาขวา'})
+                                </option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">จำนวนขวดที่ได้รับ</label>
+                        <input type="number" class="form-input" id="bottlesReceived" min="1" value="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">จำนวนวันที่ใช้ได้ (ประมาณ)</label>
+                        <input type="number" class="form-input" id="daysSupply" min="1" value="30" required>
+                        <div class="form-help">ระบุจำนวนวันที่คาดว่ายาจะหมด</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">วันที่รับยา</label>
+                        <input type="date" class="form-input" id="dispensedDate" value="${new Date().toISOString().split('T')[0]}" required>
+                    </div>
+                </form>
+            `;
+            
+            showModal('addMedicationModal');
+            
+        } catch (error) {
+            console.error('Error loading medications for inventory:', error);
+            showApiError(`ไม่สามารถโหลดรายการยาได้: ${error.message}`, 'showAddMedicationModal');
+        }
+    }
+
+    async function addMedication() {
+        const saveButton = getElement('saveMedicationBtn');
+        const spinner = getElement('saveMedicationSpinner');
+        
+        if (!saveButton || !spinner) return;
+
+        saveButton.disabled = true;
+        spinner.style.display = 'inline-block';
+
+        try {
+            const prescriptionId = getElement('prescriptionSelect').value;
+            const bottlesReceived = parseInt(getElement('bottlesReceived').value);
+            const daysSupply = parseInt(getElement('daysSupply').value);
+            const dispensedDate = getElement('dispensedDate').value;
+
+            if (!prescriptionId || !bottlesReceived || !daysSupply || !dispensedDate) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                return;
+            }
+
+            await fetchWithAuth(`${API_BASE_URL}/patient/setup-medication-inventory`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    prescription_id: prescriptionId,
+                    bottles_received: bottlesReceived,
+                    days_supply: daysSupply,
+                    dispensed_date: dispensedDate
+                })
+            });
+
+            await loadMedicationInventory();
+            closeModal('addMedicationModal');
+            alert('เพิ่มยาเข้าคลังสำเร็จ');
+
+        } catch (error) {
+            console.error('Error adding medication to inventory:', error);
+            alert(`ไม่สามารถเพิ่มยาเข้าคลังได้: ${error.message}`);
+        } finally {
+            saveButton.disabled = false;
+            spinner.style.display = 'none';
+        }
+    }
+
+    // Add Reminder Modal
+    async function showAddReminderModal() {
+        const reminderMedicationSelect = getElement('reminderMedication');
+        if (!reminderMedicationSelect) return;
+
+        reminderMedicationSelect.innerHTML = '<option value="">กำลังโหลด...</option>';
+        
+        try {
+            const response = await fetchWithAuth(`${API_BASE_URL}/patient/medications`);
+            const patientMedications = response.medications || [];
+            
+            if (patientMedications.length === 0) {
+                reminderMedicationSelect.innerHTML = '<option value="">ไม่มีรายการยาที่แพทย์สั่ง</option>';
+                alert('ไม่พบรายการยาที่แพทย์สั่ง กรุณาตรวจสอบข้อมูลในโปรไฟล์');
+                return;
+            }
+
+            reminderMedicationSelect.innerHTML = '<option value="">เลือกยา</option>';
+            patientMedications.forEach(med => {
+                const option = document.createElement('option');
+                option.value = med.prescription_id;
+                option.textContent = `${med.name || 'ไม่ระบุชื่อ'} (${med.dosage || 'ไม่ระบุขนาด'} - ${med.eye === 'both' ? 'ทั้งสองตา' : med.eye === 'left' ? 'ตาซ้าย' : 'ตาขวา'})`;
+                option.dataset.medicationId = med.medication_id;
+                option.dataset.dosage = med.dosage;
+                option.dataset.eye = med.eye;
+                reminderMedicationSelect.appendChild(option);
+            });
+
+            showModal('addReminderModal');
+
+        } catch (error) {
+            console.error('Error loading medications for reminder:', error);
+            reminderMedicationSelect.innerHTML = '<option value="">ไม่สามารถโหลดรายการยาได้</option>';
+            showApiError(`ไม่สามารถโหลดรายการยาได้: ${error.message}`, 'showAddReminderModal');
+        }
+    }
+
+    async function addReminder() {
+        const saveButton = getElement('saveReminderBtn');
+        const spinner = getElement('saveReminderSpinner');
+        
+        if (!saveButton || !spinner) return;
+
+        saveButton.disabled = true;
+        spinner.style.display = 'inline-block';
+
+        try {
+            const reminderMedicationSelect = getElement('reminderMedication');
+            const prescriptionId = reminderMedicationSelect.value;
+            const selectedOption = reminderMedicationSelect.options[reminderMedicationSelect.selectedIndex];
+            const medicationId = selectedOption.dataset.medicationId;
+            const reminderTime = getElement('reminderTime').value;
+            const eye = selectedOption.dataset.eye;
+            const dosage = selectedOption.dataset.dosage;
+            const notes = getElement('reminderNote').value;
+
+            // Get selected days
+            const daysOfWeek = [];
+            if (getElement('dayMonday').checked) daysOfWeek.push('monday');
+            if (getElement('dayTuesday').checked) daysOfWeek.push('tuesday');
+            if (getElement('dayWednesday').checked) daysOfWeek.push('wednesday');
+            if (getElement('dayThursday').checked) daysOfWeek.push('thursday');
+            if (getElement('dayFriday').checked) daysOfWeek.push('friday');
+            if (getElement('daySaturday').checked) daysOfWeek.push('saturday');
+            if (getElement('daySunday').checked) daysOfWeek.push('sunday');
+            
+            const finalDaysOfWeek = daysOfWeek.length === 7 ? 'everyday' : 
+                                  (daysOfWeek.length > 0 ? daysOfWeek.join(',') : null);
+
+            if (!prescriptionId || !medicationId || !reminderTime || !eye) {
+                alert('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน: ยา, เวลา, ตา');
+                return;
+            }
+
+            const response = await fetchWithAuth(`${API_BASE_URL}/patient/medication-reminders`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    prescription_id: prescriptionId,
+                    medication_id: medicationId,
+                    reminder_time: reminderTime,
+                    days_of_week: finalDaysOfWeek,
+                    start_date: new Date().toISOString().split('T')[0],
+                    eye: eye,
+                    drops_count: parseInt(dosage?.match(/\d+/)?.[0] || 1),
+                    notes: notes || null,
+                    notification_channels: 'app'
+                })
+            });
+            
+            await loadMedicationSchedule();
+            closeModal('addReminderModal');
+            alert('เพิ่มการแจ้งเตือนสำเร็จ');
+            getElement('addReminderForm').reset();
+
+        } catch (error) {
+            console.error('Error adding reminder:', error);
+            alert(`ไม่สามารถเพิ่มการแจ้งเตือนได้: ${error.message}`);
+        } finally {
+            saveButton.disabled = false;
+            spinner.style.display = 'none';
+        }
+    }
+
+    // Mark Medication Usage Modal
+    function showMarkMedicationModal(reminderId, medicationName, medicationId, prescriptionId, eye, dropsCount, scheduledTime, defaultStatus = 'taken') {
+        selectedReminderForUsage = { 
+            reminderId, medicationName, medicationId, prescriptionId, eye, dropsCount, scheduledTime 
+        };
+        
+        getElement('markMedicationTitle').textContent = `บันทึกการใช้ยา: ${medicationName}`;
+        getElement('medicationStatus').value = defaultStatus;
+        getElement('medicationNote').value = '';
+        getElement('medicationReminderId').value = reminderId;
+        
+        showModal('markMedicationModal');
+    }
+
+    async function recordMedicationUsage() {
+        const saveButton = getElement('saveMedicationStatusBtn');
+        const spinner = getElement('saveMedicationStatusSpinner');
+        
+        if (!saveButton || !spinner) return;
+
+        saveButton.disabled = true;
+        spinner.style.display = 'inline-block';
+
+        try {
+            const reminderId = getElement('medicationReminderId').value;
+            const status = getElement('medicationStatus').value;
+            const notes = getElement('medicationNote').value;
+            const actualTime = new Date().toISOString();
+
+            if (!reminderId || !selectedReminderForUsage || !status) {
+                alert('ข้อมูลไม่ครบถ้วนสำหรับการบันทึกการใช้ยา');
+                return;
+            }
+
+            await fetchWithAuth(`${API_BASE_URL}/patient/medication-usage`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    reminder_id: reminderId,
+                    medication_id: selectedReminderForUsage.medicationId,
+                    status: status,
+                    eye: selectedReminderForUsage.eye,
+                    drops_count: selectedReminderForUsage.dropsCount,
+                    notes: notes,
+                    scheduled_time: selectedReminderForUsage.scheduledTime,
+                    actual_time: actualTime
+                })
+            });
+            
+            await loadMedicationSchedule();
+            await loadMedicationHistory();
+            closeModal('markMedicationModal');
+            alert('บันทึกการใช้ยาสำเร็จ');
+
+        } catch (error) {
+            console.error('Error recording medication usage:', error);
+            alert(`ไม่สามารถบันทึกการใช้ยาได้: ${error.message}`);
+        } finally {
+            saveButton.disabled = false;
+            spinner.style.display = 'none';
+        }
+    }
+
+    // ฟังก์ชันตั้งค่าคลังยาสำหรับยาที่หมอสั่ง
+    async function setupMedicationInventory(prescriptionId, medicationName) {
+        // ลบ prefix ถ้ามี
+        const cleanPrescriptionId = prescriptionId.startsWith('pm_') ? 
+            prescriptionId.substring(3) : prescriptionId;
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal-backdrop';
+        modal.style.display = 'flex';
+        modal.innerHTML = `
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">ตั้งค่าคลังยา: ${medicationName}</h2>
+                    <button class="modal-close" onclick="this.closest('.modal-backdrop').remove()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">จำนวนขวดที่ได้รับ</label>
+                        <input type="number" class="form-input" id="setupBottles" min="1" value="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">จำนวนวันที่ใช้ได้ (ประมาณ)</label>
+                        <input type="number" class="form-input" id="setupDays" min="1" value="30" required>
+                        <div class="form-help">ระบุจำนวนวันที่คาดว่ายาจะหมด</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">วันที่รับยา</label>
+                        <input type="date" class="form-input" id="setupDate" value="${new Date().toISOString().split('T')[0]}" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-btn secondary" onclick="this.closest('.modal-backdrop').remove()">ยกเลิก</button>
+                    <button class="modal-btn primary" onclick="submitSetupInventory('${cleanPrescriptionId}', '${medicationName}', this)">
+                        <span class="loading-spinner" style="display: none;"></span>
+                        บันทึก
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+    }
+    
+    async function submitSetupInventory(prescriptionId, medicationName, button) {
+        const spinner = button.querySelector('.loading-spinner');
+        button.disabled = true;
+        spinner.style.display = 'inline-block';
+        
+        try {
+            const bottles = parseInt(document.getElementById('setupBottles').value);
+            const days = parseInt(document.getElementById('setupDays').value);
+            const date = document.getElementById('setupDate').value;
+            
+            if (!bottles || !days || !date) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                return;
+            }
+            
+            await fetchWithAuth(`${API_BASE_URL}/patient/setup-medication-inventory`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    prescription_id: prescriptionId,
+                    bottles_received: bottles,
+                    days_supply: days,
+                    dispensed_date: date
+                })
+            });
+            
+            button.closest('.modal-backdrop').remove();
+            await loadMedicationInventory();
+            alert(`ตั้งค่าคลังยา "${medicationName}" สำเร็จ`);
+            
+        } catch (error) {
+            console.error('Error setting up inventory:', error);
+            alert(`ไม่สามารถตั้งค่าคลังยาได้: ${error.message}`);
+        } finally {
+            button.disabled = false;
+            spinner.style.display = 'none';
+        }
+    }
+
+    // Deplete Medication Modal
+    function showDepleteMedicationModal(inventoryId, medicationName) {
+        selectedInventoryIdForDeplete = inventoryId;
+        getElement('depleteMedicationId').value = inventoryId;
+        getElement('depleteMedicationModal').querySelector('.modal-title').textContent = `แจ้งยาหมด: ${medicationName}`;
+        showModal('depleteMedicationModal');
+    }
+
+    async function markMedicationDepleted() {
+        const saveButton = getElement('confirmDepleteBtn');
+        const spinner = getElement('depleteMedicationSpinner');
+        
+        if (!saveButton || !spinner) return;
+
+        saveButton.disabled = true;
+        spinner.style.display = 'inline-block';
+
+        try {
+            const inventoryId = getElement('depleteMedicationId').value;
+
+            if (!inventoryId) {
+                alert('ไม่พบ ID รายการยาที่ต้องการแจ้งว่าหมด');
+                return;
+            }
+
+            // ตรวจสอบว่าเป็น prescription ID หรือ inventory ID
+            if (inventoryId.startsWith('pm_')) {
+                alert('ไม่สามารถแจ้งยาหมดสำหรับยาที่ยังไม่ได้ตั้งค่าคลังได้ กรุณาตั้งค่าคลังยาก่อน');
+                return;
+            }
+
+            await fetchWithAuth(`${API_BASE_URL}/patient/medication-inventory/${inventoryId}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    is_depleted: 1,
+                    depleted_date: new Date().toISOString().split('T')[0]
+                })
+            });
+
+            await loadMedicationInventory();
+            closeModal('depleteMedicationModal');
+            alert('แจ้งยาหมดสำเร็จ');
+
+        } catch (error) {
+            console.error('Error marking medication depleted:', error);
+            alert(`ไม่สามารถแจ้งยาหมดได้: ${error.message}`);
+        } finally {
+            saveButton.disabled = false;
+            spinner.style.display = 'none';
+        }
+    }
+
+    // Check Notifications
+    async function checkNotificationsCount() {
+        const token = getAuthToken();
+        if (!token || !patientData || !patientData.id) return;
+        
+        try {
+            const data = await fetchWithAuth(`${API_BASE_URL}/patient/notifications?unread_only=true&limit=10`);
+            const notificationsIndicatorEl = getElement('notificationsIndicator');
+            
+            if (notificationsIndicatorEl) {
+                let count = 0;
+                if (data && data.notifications && Array.isArray(data.notifications)) {
+                    count = data.notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
+                } else if (data && typeof data.unread_count === 'number') {
+                    count = data.unread_count;
+                }
+                notificationsIndicatorEl.style.display = (count > 0) ? 'block' : 'none';
+            }
+        } catch (error) {
+            console.warn("Could not check notifications count:", error.message);
+        }
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOMContentLoaded - initializing medications page');
+        const token = getAuthToken();
+        if (token) {
+            loadUserProfileAndInit();
+        }
+        
+        // Set initial active tab
+        currentTab = 'schedule';
+        const initialTabContent = getElement('scheduleTab');
+        if (initialTabContent) initialTabContent.style.display = 'block';
+    });
+</script>
+</body>
+</html>

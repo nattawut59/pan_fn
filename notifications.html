@@ -1,0 +1,2718 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>การแจ้งเตือน - ระบบติดตามการรักษาโรคต้อหิน</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS styles */
+        :root {
+            --primary: #00A8A8;
+            --primary-dark: #007878;
+            --primary-light: #E0F2F1;
+            --secondary: #00CECE;
+            --dark: #324047;
+            --gray: #6B7280;
+            --light-gray: #F3F4F6;
+            --white: #FFFFFF;
+            --error: #EF4444;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --info: #3B82F6;
+            --border: #E5E7EB;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background-color: #F9FAFB;
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        /* Layout */
+        .layout {
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background-color: var(--white);
+            height: 100vh;
+            position: fixed;
+            box-shadow: var(--shadow);
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 20;
+            background: var(--primary);
+            color: var(--white);
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        .logo-container {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background-color: var(--primary-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .logo-subtitle {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .menu {
+            padding: 20px 0;
+            overflow-y: auto;
+            max-height: calc(100vh - 91px);
+        }
+
+        .menu-label {
+            padding: 0 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--gray);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        /* Header */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .notifications-btn {
+            background: var(--white);
+            border: 1px solid var(--border);
+            color: var(--gray);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .notifications-indicator {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            background-color: var(--error);
+            border-radius: 50%;
+            border: 2px solid var(--white);
+            display: none;
+        }
+
+        .user-dropdown {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 6px 8px 6px 6px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: var(--primary-light);
+            border-radius: 50%;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+
+        /* User Menu */
+        .user-menu {
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+            width: 200px;
+            z-index: 100;
+            display: none;
+        }
+
+        .user-menu.show {
+            display: block;
+        }
+
+        .user-menu-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-menu-item:hover {
+            background-color: var(--light-gray);
+        }
+
+        .user-menu-logout {
+            color: var(--error);
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card-action {
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            font-weight: 500;
+            color: var(--gray);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: var(--primary);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* Notification Styles */
+        .notification-item {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 20px;
+        }
+
+        .notification-icon.medication_reminder {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .notification-icon.appointment_reminder {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--info);
+        }
+
+        .notification-icon.health_alert {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        .notification-icon.medication_inventory {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .notification-icon.emergency_alert {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        .notification-icon.system {
+            background-color: rgba(107, 114, 128, 0.1);
+            color: var(--gray);
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .notification-message {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .notification-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .notification-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .notification-btn.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .notification-btn.primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .notification-btn.secondary {
+            background-color: var(--light-gray);
+            color: var(--dark);
+        }
+
+        .notification-btn.secondary:hover {
+            background-color: var(--border);
+        }
+
+        .notification-unread {
+            position: relative;
+        }
+
+        .notification-unread::before {
+            content: '';
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary);
+            border-radius: 50%;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -8px;
+        }
+
+        .form-col {
+            flex: 1;
+            min-width: 250px;
+            padding: 0 8px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--dark);
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 168, 168, 0.1);
+        }
+
+        .form-help {
+            font-size: 13px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        .form-switch {
+            display: flex;
+            align-items: center;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            margin-right: 8px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gray);
+            transition: .3s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Medication Reminder Styles */
+        .medication-item {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .medication-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .medication-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .medication-schedule {
+            font-size: 14px;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .medication-time {
+            font-size: 13px;
+            color: var(--gray);
+        }
+
+        .medication-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .medication-action-btn {
+            padding: 6px 12px;
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .medication-action-btn:hover {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .reminder-days {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .day-box {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .day-box.selected {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .day-box.unselected {
+            background-color: var(--light-gray);
+            color: var(--gray);
+        }
+
+        .reminder-times {
+            margin-top: 12px;
+        }
+
+        .time-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .time-input {
+            width: 120px;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        .time-label {
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .time-remove {
+            color: var(--error);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .add-time-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .add-time-btn:hover {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+
+        /* API Error */
+        .api-error {
+            background-color: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            display: none;
+        }
+
+        .api-error-icon {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(239, 68, 68, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--error);
+            flex-shrink: 0;
+        }
+
+        .api-error-content {
+            flex: 1;
+        }
+
+        .api-error-title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .api-error-message {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .api-error-retry {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background-color: var(--error);
+            color: var(--white);
+            transition: all 0.3s ease;
+        }
+
+        .api-error-retry:hover {
+            background-color: #dc2626;
+        }
+
+        /* Loading Spinner */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 168, 168, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 16px;
+        }
+
+        .loading-text {
+            font-size: 15px;
+            color: var(--gray);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 700px;
+            background-color: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            max-height: 90vh;
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            font-size: 18px;
+            color: var(--gray);
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background-color: var(--gray);
+            color: var(--white);
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .modal-btn.secondary {
+            background-color: var(--light-gray);
+            color: var(--dark);
+        }
+
+        .modal-btn.danger {
+            background-color: var(--error);
+            color: var(--white);
+        }
+
+        /* เพิ่ม CSS สำหรับการแสดงข้อมูลยา */
+        .medication-info-box {
+            background-color: #F0F9FF;
+            border: 1px solid #0EA5E9;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .medication-info-title {
+            color: #0EA5E9;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .medication-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            font-size: 14px;
+        }
+
+        .usage-guidelines-box {
+            background-color: #F0FDF4;
+            border: 1px solid #10B981;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .usage-guidelines-title {
+            color: #10B981;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .suggested-times-box {
+            background-color: #FEF3C7;
+            border: 1px solid #F59E0B;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .suggested-time-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 8px;
+            background-color: white;
+            border-radius: 6px;
+        }
+
+        .suggested-time {
+            width: 80px;
+            font-weight: 500;
+        }
+
+        .suggested-label {
+            flex: 1;
+            margin-left: 12px;
+        }
+
+        .suggested-badge {
+            font-size: 12px;
+            color: #6B7280;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding-top: 60px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 8px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .form-col {
+                width: 100%;
+            }
+            
+            .notification-item {
+                flex-direction: column;
+            }
+            
+            .notification-icon {
+                margin-bottom: 8px;
+            }
+
+            .medication-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+    
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo-container">
+                <div class="logo">G</div>
+                <div class="logo-text">
+                    <div class="logo-title">GTMS</div>
+                    <div class="logo-subtitle">ระบบติดตามการรักษาโรคต้อหิน</div>
+                </div>
+            </div>
+            
+            <nav class="menu">
+                <p class="menu-label">หน้าหลัก</p>
+                <a href="dashboard.html" class="menu-item">
+                    <div class="menu-icon">📊</div>
+                    แดชบอร์ด
+                </a>
+                <a href="appointments.html" class="menu-item">
+                    <div class="menu-icon">📅</div>
+                    การนัดหมาย
+                </a>
+                
+                <p class="menu-label">การติดตามการรักษา</p>
+                <a href="iop-tracking.html" class="menu-item">
+                    <div class="menu-icon">👁️</div>
+                    ค่าความดันลูกตา
+                </a>
+                <a href="medications.html" class="menu-item">
+                    <div class="menu-icon">💊</div>
+                    ยาและการรักษา
+                </a>
+                <a href="eye-tests.html" class="menu-item">
+                    <div class="menu-icon">📝</div>
+                    ผลการตรวจวัด
+                </a>
+                
+                <p class="menu-label">อื่นๆ</p>
+                <a href="profile.html" class="menu-item">
+                    <div class="menu-icon">👤</div>
+                    ข้อมูลส่วนตัว
+                </a>
+                <a href="notifications.html" class="menu-item active">
+                    <div class="menu-icon">🔔</div>
+                    การแจ้งเตือน
+                </a>
+                <a href="documents.html" class="menu-item">
+                    <div class="menu-icon">📄</div>
+                    เอกสารทางการแพทย์
+                </a>
+                <a href="settings.html" class="menu-item">
+                    <div class="menu-icon">⚙️</div>
+                    ตั้งค่า
+                </a>
+                <a href="#" class="menu-item" onclick="logout()">
+                    <div class="menu-icon">🚪</div>
+                    ออกจากระบบ
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- API Error Display -->
+            <div class="api-error" id="apiError">
+                <div class="api-error-icon">⚠️</div>
+                <div class="api-error-content">
+                    <div class="api-error-title">ไม่สามารถโหลดข้อมูลได้</div>
+                    <div class="api-error-message" id="apiErrorMessage">กรุณาลองใหม่อีกครั้ง</div>
+                </div>
+                <button class="api-error-retry" onclick="loadData()">ลองใหม่</button>
+            </div>
+
+            <div class="content-header">
+                <h1 class="page-title">การแจ้งเตือน</h1>
+                
+                <div class="user-info">
+                    <button class="notifications-btn" onclick="location.href='notifications.html'">
+                        🔔
+                        <span class="notifications-indicator" id="notificationsIndicator"></span>
+                    </button>
+                    
+                    <div class="user-dropdown" onclick="toggleUserMenu()">
+                        <div class="user-avatar" id="headerUserAvatar">-</div>
+                        <span class="user-name" id="headerUserName">กำลังโหลด...</span>
+                        <span>▼</span>
+                    </div>
+
+                    <!-- User Menu Dropdown -->
+                    <div class="user-menu" id="userMenu">
+                        <a href="profile.html" class="user-menu-item">
+                            <div class="menu-icon">👤</div>
+                            โปรไฟล์
+                        </a>
+                        <a href="settings.html" class="user-menu-item">
+                            <div class="menu-icon">⚙️</div>
+                            ตั้งค่า
+                        </a>
+                        <a href="#" class="user-menu-item user-menu-logout" onclick="logout()">
+                            <div class="menu-icon">🚪</div>
+                            ออกจากระบบ
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Tabs -->
+            <div class="tabs">
+                <div class="tab active" data-tab="notifications" onclick="switchTab('notifications')">การแจ้งเตือนทั้งหมด</div>
+                <div class="tab" data-tab="medication-reminders" onclick="switchTab('medication-reminders')">ตั้งค่าเตือนทานยา</div>
+                <div class="tab" data-tab="settings" onclick="switchTab('settings')">ตั้งค่าการแจ้งเตือน</div>
+            </div>
+
+            <!-- All Notifications Tab -->
+            <div id="notifications-tab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">การแจ้งเตือนทั้งหมด</h2>
+                        <span class="card-action" onclick="markAllAsRead()">✓ ทำเครื่องหมายว่าอ่านแล้วทั้งหมด</span>
+                    </div>
+                    <div class="card-body">
+                        <!-- Loading Spinner -->
+                        <div class="loading-container" id="notifications-loading">
+                            <div class="loading-spinner"></div>
+                            <p class="loading-text">กำลังโหลดข้อมูล...</p>
+                        </div>
+                        
+                        <div id="notifications-container" style="display: none;">
+                            <!-- Notifications will be loaded here -->
+                        </div>
+                        
+                        <!-- Empty State -->
+                        <div class="empty-state" id="notifications-empty" style="display: none;">
+                            <div class="empty-state-icon">🔔</div>
+                            <div class="empty-state-text">ไม่มีการแจ้งเตือน</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Medication Reminders Tab -->
+            <div id="medication-reminders-tab" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">การเตือนทานยา</h2>
+                        <span class="card-action" onclick="showAddMedicationReminderModal()">+ เพิ่มการเตือนทานยา</span>
+                    </div>
+                    <div class="card-body">
+                        <!-- Loading Spinner -->
+                        <div class="loading-container" id="reminders-loading">
+                            <div class="loading-spinner"></div>
+                            <p class="loading-text">กำลังโหลดข้อมูล...</p>
+                        </div>
+                        
+                        <div id="reminders-container" style="display: none;">
+                            <!-- Medication reminders will be loaded here -->
+                        </div>
+                        
+                        <!-- Empty State -->
+                        <div class="empty-state" id="reminders-empty" style="display: none;">
+                            <div class="empty-state-icon">💊</div>
+                            <div class="empty-state-text">ไม่มีการเตือนทานยา</div>
+                            <button class="modal-btn primary" onclick="showAddMedicationReminderModal()">เพิ่มการเตือนทานยา</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Settings Tab -->
+            <div id="settings-tab" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">ตั้งค่าการแจ้งเตือน</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <h3 style="margin-bottom: 16px;">การเตือนทานยา</h3>
+                            
+                            <div class="form-switch">
+                                <label class="switch">
+                                    <input type="checkbox" id="medication-notifications" checked>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="medication-notifications">เปิดใช้งานการเตือนทานยา</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" id="medication-settings">
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label">เวลาแจ้งเตือนล่วงหน้า</label>
+                                    <select class="form-select" id="medication-reminder-time">
+                                        <option value="0">ตรงเวลา</option>
+                                        <option value="5">5 นาทีก่อนเวลา</option>
+                                        <option value="10">10 นาทีก่อนเวลา</option>
+                                        <option value="15" selected>15 นาทีก่อนเวลา</option>
+                                        <option value="30">30 นาทีก่อนเวลา</option>
+                                        <option value="60">1 ชั่วโมงก่อนเวลา</option>
+                                    </select>
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">แจ้งเตือนซ้ำ</label>
+                                    <select class="form-select" id="medication-reminder-repeat">
+                                        <option value="0">ไม่มีการแจ้งเตือนซ้ำ</option>
+                                        <option value="5" selected>ทุก 5 นาที</option>
+                                        <option value="10">ทุก 10 นาที</option>
+                                        <option value="15">ทุก 15 นาที</option>
+                                        <option value="30">ทุก 30 นาที</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label">แจ้งเตือนซ้ำสูงสุด</label>
+                                    <select class="form-select" id="medication-reminder-max-repeat">
+                                        <option value="1">1 ครั้ง</option>
+                                        <option value="2">2 ครั้ง</option>
+                                        <option value="3" selected>3 ครั้ง</option>
+                                        <option value="4">4 ครั้ง</option>
+                                        <option value="5">5 ครั้ง</option>
+                                    </select>
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">เสียงแจ้งเตือน</label>
+                                    <select class="form-select" id="medication-reminder-sound">
+                                        <option value="default" selected>เสียงเริ่มต้น</option>
+                                        <option value="bell">เสียงกระดิ่ง</option>
+                                        <option value="chime">เสียงระฆัง</option>
+                                        <option value="alert">เสียงเตือน</option>
+                                        <option value="none">ไม่มีเสียง</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border);">
+                        
+                        <div class="form-group">
+                            <h3 style="margin-bottom: 16px;">การเตือนนัดหมาย</h3>
+                            
+                            <div class="form-switch">
+                                <label class="switch">
+                                    <input type="checkbox" id="appointment-notifications" checked>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="appointment-notifications">เปิดใช้งานการเตือนนัดหมาย</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" id="appointment-settings">
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label">แจ้งเตือนล่วงหน้า</label>
+                                    <select class="form-select" id="appointment-reminder-time">
+                                        <option value="1">1 วันก่อนนัดหมาย</option>
+                                        <option value="2">2 วันก่อนนัดหมาย</option>
+                                        <option value="3" selected>3 วันก่อนนัดหมาย</option>
+                                        <option value="5">5 วันก่อนนัดหมาย</option>
+                                        <option value="7">7 วันก่อนนัดหมาย</option>
+                                    </select>
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">เวลาแจ้งเตือน</label>
+                                    <input type="time" class="form-input" id="appointment-reminder-hour" value="09:00">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label">แจ้งเตือนซ้ำในวันนัด</label>
+                                    <div class="form-switch">
+                                        <label class="switch">
+                                            <input type="checkbox" id="appointment-reminder-day-of" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                        <label for="appointment-reminder-day-of">เปิดใช้งานการแจ้งเตือนในวันนัด</label>
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">เสียงแจ้งเตือน</label>
+                                    <select class="form-select" id="appointment-reminder-sound">
+                                        <option value="default" selected>เสียงเริ่มต้น</option>
+                                        <option value="bell">เสียงกระดิ่ง</option>
+                                        <option value="chime">เสียงระฆัง</option>
+                                        <option value="alert">เสียงเตือน</option>
+                                        <option value="none">ไม่มีเสียง</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border);">
+                        
+                        <div class="form-group">
+                            <h3 style="margin-bottom: 16px;">การแจ้งเตือนอื่นๆ</h3>
+                            
+                            <div class="form-switch" style="margin-bottom: 12px;">
+                                <label class="switch">
+                                    <input type="checkbox" id="iop-notifications" checked>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="iop-notifications">แจ้งเตือนเมื่อค่าความดันตาผิดปกติ</label>
+                            </div>
+                            
+                            <div class="form-switch" style="margin-bottom: 12px;">
+                                <label class="switch">
+                                    <input type="checkbox" id="medication-inventory-notifications" checked>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="medication-inventory-notifications">แจ้งเตือนเมื่อยาใกล้หมด</label>
+                            </div>
+                            
+                            <div class="form-switch" style="margin-bottom: 12px;">
+                                <label class="switch">
+                                    <input type="checkbox" id="result-notifications" checked>
+                                    <span class="slider"></span>
+                                </label>
+                                <label for="result-notifications">แจ้งเตือนเมื่อมีผลการตรวจใหม่</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 24px;">
+                            <button class="modal-btn primary" onclick="saveNotificationSettings()">บันทึกการตั้งค่า</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Medication Reminder Modal -->
+    <div class="modal-backdrop" id="addMedicationReminderModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">เพิ่มการเตือนทานยา</h2>
+                <button class="modal-close" onclick="closeModal('addMedicationReminderModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="addMedicationReminderForm">
+                    <div class="form-group">
+                        <label class="form-label">ชื่อยา</label>
+                        <select class="form-select" id="medication-name" required onchange="onMedicationSelected()">
+                            <option value="">เลือกยา</option>
+                            <!-- จะเติมข้อมูลจาก API -->
+                        </select>
+                        <div class="form-help">เลือกยาที่ต้องการตั้งการแจ้งเตือน</div>
+                    </div>
+
+                    <!-- แสดงข้อมูลยาที่เลือก -->
+                    <div id="medication-info" style="display: none;">
+                        <div class="medication-info-box">
+                            <h4 class="medication-info-title">ข้อมูลยาที่เลือก</h4>
+                            <div id="medication-details" class="medication-details"></div>
+                        </div>
+                        
+                        <!-- คำแนะนำการใช้ยา -->
+                        <div id="usage-guidelines" class="usage-guidelines-box" style="display: none;">
+                            <h4 class="usage-guidelines-title">คำแนะนำการใช้ยา</h4>
+                            <ul id="guidelines-list"></ul>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">ตารางการทานยา</label>
+                        <select class="form-select" id="medication-schedule" required disabled onchange="onScheduleSelected()">
+                            <option value="">กรุณาเลือกยาก่อน</option>
+                            <option value="suggested">ใช้เวลาที่แนะนำ (แนะนำ)</option>
+                            <option value="custom">กำหนดเวลาเอง</option>
+                        </select>
+                        <div class="form-help">ระบบจะแนะนำเวลาที่เหมาะสมตามความถี่ของยา</div>
+                    </div>
+
+                    <div class="form-group" id="suggested-times-group" style="display: none;">
+                        <label class="form-label">เวลาที่แนะนำ</label>
+                        <div id="suggested-times-list" class="suggested-times-box">
+                            <!-- จะแสดงเวลาที่แนะนำที่นี่ -->
+                        </div>
+                        <div class="form-help">เวลาเหล่านี้คำนวณจากความถี่ของยาที่หมอสั่ง</div>
+                    </div>
+                    
+                    <div class="form-group" id="custom-times-group" style="display: none;">
+                        <label class="form-label">เวลาทานยา (กำหนดเอง)</label>
+                        <div class="reminder-times" id="reminder-times">
+                            <div class="time-item">
+                                <input type="time" class="time-input" required>
+                                <span class="time-label">มื้อเช้า</span>
+                                <button type="button" class="time-remove" onclick="removeTimeInput(this)">×</button>
+                            </div>
+                        </div>
+                        <button type="button" class="add-time-btn" onclick="addTimeInput()">+ เพิ่มเวลาทานยา</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">ข้อมูลเพิ่มเติม</label>
+                        <input type="text" class="form-input" id="medication-note" placeholder="เช่น ทานก่อนอาหาร, ทานหลังอาหาร">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('addMedicationReminderModal')">ยกเลิก</button>
+                <button class="modal-btn primary" id="saveMedicationReminderBtn" onclick="addMedicationReminder()">
+                    <span id="saveMedicationReminderSpinner" class="loading-spinner" style="display: none;"></span>
+                    บันทึก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Medication Reminder Modal -->
+    <div class="modal-backdrop" id="editMedicationReminderModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">แก้ไขการเตือนทานยา</h2>
+                <button class="modal-close" onclick="closeModal('editMedicationReminderModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="editMedicationReminderForm">
+                    <input type="hidden" id="edit-reminder-id">
+                    
+                    <div class="form-group">
+                        <label class="form-label">ชื่อยา</label>
+                        <select class="form-select" id="edit-medication-name" required>
+                            <option value="">เลือกยา</option>
+                            <!-- จะเติมข้อมูลจาก API -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">เวลาทานยา</label>
+                        <div class="reminder-times" id="edit-reminder-times">
+                            <!-- จะเติมข้อมูลจาก JavaScript -->
+                        </div>
+                        <button type="button" class="add-time-btn" onclick="addEditTimeInput()">+ เพิ่มเวลาทานยา</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">ข้อมูลเพิ่มเติม</label>
+                        <input type="text" class="form-input" id="edit-medication-note" placeholder="เช่น ทานก่อนอาหาร, ทานหลังอาหาร">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn danger" onclick="deleteMedicationReminder()">ลบการเตือน</button>
+                <button class="modal-btn secondary" onclick="closeModal('editMedicationReminderModal')">ยกเลิก</button>
+                <button class="modal-btn primary" id="editMedicationReminderBtn" onclick="updateMedicationReminder()">
+                    <span id="editMedicationReminderSpinner" class="loading-spinner" style="display: none;"></span>
+                    บันทึก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Configuration - เชื่อมต่อกับ Backend API
+        const API_BASE_URL = 'http://localhost:5001/api';
+        let patientId = '';
+        let userData = null;
+        let notifications = [];
+        let medicationReminders = [];
+        let medications = [];
+        let currentTab = 'notifications';
+        
+        // ตรวจสอบการเข้าสู่ระบบ
+        function checkAuth() {
+            const token = localStorage.getItem('gtms_token');
+            
+            if (!token) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            
+            return token;
+        }
+
+        // โหลดข้อมูลผู้ใช้งาน
+        async function loadUserProfile() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load user profile');
+                }
+                
+                const data = await response.json();
+                userData = data.user;
+                patientId = userData.id;
+                
+                // Debug: แสดง user ID ใน console
+                console.log('Loaded user data:', userData);
+                console.log('Patient ID:', patientId);
+                
+                // อัปเดตข้อมูลผู้ใช้ในหน้า
+                updateUserUI();
+                
+                // โหลดข้อมูลตามแท็บที่กำลังแสดง
+                loadData();
+                
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showApiError('ไม่สามารถโหลดข้อมูลโปรไฟล์ได้');
+            }
+        }
+
+        // อัปเดตข้อมูลผู้ใช้ในหน้า
+        function updateUserUI() {
+            if (!userData) return;
+            
+            // อัปเดตโปรไฟล์ในส่วนหัว
+            const headerUserName = document.getElementById('headerUserName');
+            const headerUserAvatar = document.getElementById('headerUserAvatar');
+            
+            if (userData.firstName && userData.lastName) {
+                headerUserName.textContent = `${userData.firstName} ${userData.lastName}`;
+                headerUserAvatar.textContent = userData.firstName.charAt(0);
+            } else if (userData.username) {
+                headerUserName.textContent = userData.username;
+                headerUserAvatar.textContent = userData.username.charAt(0).toUpperCase();
+            }
+        }
+
+        // สลับการแสดงแท็บ
+        function switchTab(tab) {
+            // ซ่อนเนื้อหาทั้งหมด
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            
+            // แสดงเนื้อหาที่เลือก
+            document.getElementById(`${tab}-tab`).style.display = 'block';
+            
+            // อัปเดตแท็บที่เลือก
+            document.querySelectorAll('.tab').forEach(tabEl => {
+                tabEl.classList.remove('active');
+            });
+            document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+            
+            // เก็บแท็บปัจจุบัน
+            currentTab = tab;
+            
+            // โหลดข้อมูลตามแท็บที่เลือก
+            loadData();
+        }
+
+        // โหลดข้อมูลตามแท็บที่กำลังแสดง
+        function loadData() {
+            if (!patientId) return;
+            
+            switch (currentTab) {
+                case 'notifications':
+                    loadNotifications();
+                    break;
+                case 'medication-reminders':
+                    loadMedicationReminders();
+                    loadMedications();
+                    break;
+                case 'settings':
+                    loadNotificationSettings();
+                    break;
+            }
+        }
+
+        // โหลดการแจ้งเตือน - เพิ่ม debug และ fallback
+        async function loadNotifications() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            // แสดง Loading
+            document.getElementById('notifications-loading').style.display = 'flex';
+            document.getElementById('notifications-container').style.display = 'none';
+            document.getElementById('notifications-empty').style.display = 'none';
+            hideApiError();
+            
+            try {
+                console.log('=== FRONTEND DEBUG ===');
+                console.log('API URL:', `${API_BASE_URL}/patient/notifications?limit=50`);
+                console.log('Token:', token.substring(0, 20) + '...');
+                console.log('Patient ID:', patientId);
+                
+                // ลองเรียก test endpoint ก่อน
+                console.log('Testing with test endpoint...');
+                const testResponse = await fetch(`${API_BASE_URL}/test/notifications`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (testResponse.ok) {
+                    const testData = await testResponse.json();
+                    console.log('Test endpoint success:', testData);
+                } else {
+                    const testError = await testResponse.text();
+                    console.log('Test endpoint failed:', testError);
+                }
+                
+                // เรียก API หลัก
+                const response = await fetch(`${API_BASE_URL}/patient/notifications?limit=50`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    // แสดงรายละเอียดข้อผิดพลาดมากขึ้น
+                    const errorText = await response.text();
+                    console.error('API Error Response:', errorText);
+                    
+                    let errorData;
+                    try {
+                        errorData = JSON.parse(errorText);
+                    } catch (e) {
+                        errorData = { message: errorText };
+                    }
+                    
+                    throw new Error(`Failed to load notifications: ${response.status} ${response.statusText}\nDetails: ${JSON.stringify(errorData)}`);
+                }
+                
+                const data = await response.json();
+                console.log('Received data:', data);
+                
+                notifications = data.notifications || [];
+                console.log('Notifications array:', notifications);
+                
+                // อัปเดตจำนวนการแจ้งเตือนที่ยังไม่ได้อ่าน
+                updateUnreadNotificationCount();
+                
+                // ซ่อน Loading
+                document.getElementById('notifications-loading').style.display = 'none';
+                
+                // แสดงการแจ้งเตือน
+                renderNotifications();
+                
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                document.getElementById('notifications-loading').style.display = 'none';
+                
+                // แสดงข้อความผิดพลาดที่ชัดเจนขึ้น
+                if (error.message.includes('500')) {
+                    showApiError('เซิร์ฟเวอร์ผิดพลาด กรุณาตรวจสอบ Backend logs');
+                } else if (error.message.includes('Failed to fetch')) {
+                    showApiError('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบ Backend Server');
+                } else {
+                    showApiError(`ไม่สามารถโหลดการแจ้งเตือนได้: ${error.message}`);
+                }
+            }
+        }
+
+        // แสดงการแจ้งเตือน
+        function renderNotifications() {
+            const container = document.getElementById('notifications-container');
+            
+            if (!notifications || notifications.length === 0) {
+                document.getElementById('notifications-empty').style.display = 'block';
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'block';
+            container.innerHTML = '';
+            
+            // เรียงลำดับตามวันที่ล่าสุดก่อน
+            notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            
+            notifications.forEach(notification => {
+                const notificationItem = document.createElement('div');
+                notificationItem.className = 'notification-item';
+                
+                if (!notification.is_read) {
+                    notificationItem.classList.add('notification-unread');
+                }
+                
+                // กำหนดไอคอนตามประเภทการแจ้งเตือน
+                let iconClass = 'system';
+                let iconText = '📢';
+                
+                if (notification.notification_type) {
+                    switch (notification.notification_type) {
+                        case 'medication_reminder':
+                            iconClass = 'medication_reminder';
+                            iconText = '💊';
+                            break;
+                        case 'appointment_reminder':
+                            iconClass = 'appointment_reminder';
+                            iconText = '📅';
+                            break;
+                        case 'health_alert':
+                            iconClass = 'health_alert';
+                            iconText = '⚠️';
+                            break;
+                        case 'medication_inventory':
+                            iconClass = 'medication_inventory';
+                            iconText = '📦';
+                            break;
+                        case 'emergency_alert':
+                            iconClass = 'emergency_alert';
+                            iconText = '🚨';
+                            break;
+                        default:
+                            iconClass = 'system';
+                            iconText = '📢';
+                    }
+                }
+                
+                notificationItem.innerHTML = `
+                    <div class="notification-icon ${iconClass}">
+                        ${iconText}
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">${notification.title}</div>
+                        <div class="notification-message">${notification.body}</div>
+                        <div class="notification-time">${formatTimeAgo(new Date(notification.created_at))}</div>
+                        ${!notification.is_read ? `
+                        <div class="notification-actions">
+                            <button class="notification-btn secondary" onclick="markAsRead('${notification.notification_id}')">
+                                ทำเครื่องหมายว่าอ่านแล้ว
+                            </button>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                container.appendChild(notificationItem);
+            });
+        }
+
+        // อัปเดตจำนวนการแจ้งเตือนที่ยังไม่ได้อ่าน
+        function updateUnreadNotificationCount() {
+            if (!notifications) return;
+            
+            const unreadCount = notifications.filter(n => !n.is_read).length;
+            const indicator = document.getElementById('notificationsIndicator');
+            
+            if (unreadCount > 0) {
+                indicator.style.display = 'block';
+            } else {
+                indicator.style.display = 'none';
+            }
+        }
+
+        // ทำเครื่องหมายว่าอ่านแล้ว
+        async function markAsRead(notificationId) {
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/patient/notifications/${notificationId}/read`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to mark notification as read');
+                }
+                
+                // อัปเดตการแจ้งเตือนในหน้า
+                const notification = notifications.find(n => n.notification_id === notificationId);
+                if (notification) {
+                    notification.is_read = true;
+                    renderNotifications();
+                    updateUnreadNotificationCount();
+                }
+                
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+                alert('ไม่สามารถทำเครื่องหมายว่าอ่านแล้วได้ กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        // ทำเครื่องหมายว่าอ่านแล้วทั้งหมด
+        async function markAllAsRead() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            // กรองเฉพาะการแจ้งเตือนที่ยังไม่ได้อ่าน
+            const unreadNotifications = notifications.filter(n => !n.is_read);
+            
+            if (unreadNotifications.length === 0) {
+                alert('ไม่มีการแจ้งเตือนที่ยังไม่ได้อ่าน');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/patient/notifications/mark-all-read`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to mark all notifications as read');
+                }
+                
+                // อัปเดตการแจ้งเตือนในหน้า
+                notifications.forEach(notification => {
+                    notification.is_read = true;
+                });
+                
+                renderNotifications();
+                updateUnreadNotificationCount();
+                
+                alert('ทำเครื่องหมายว่าอ่านแล้วทั้งหมด');
+                
+            } catch (error) {
+                console.error('Error marking all notifications as read:', error);
+                alert('ไม่สามารถทำเครื่องหมายว่าอ่านแล้วทั้งหมดได้ กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        // โหลดการเตือนทานยา (ใช้ endpoint เดิมชั่วคราว)
+        async function loadMedicationReminders() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            // แสดง Loading
+            document.getElementById('reminders-loading').style.display = 'flex';
+            document.getElementById('reminders-container').style.display = 'none';
+            document.getElementById('reminders-empty').style.display = 'none';
+            hideApiError();
+            
+            try {
+                // ใช้ endpoint เดิมก่อน
+                const response = await fetch(`${API_BASE_URL}/patient/medication-reminders`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load medication reminders');
+                }
+                
+                const data = await response.json();
+                const originalReminders = data.reminders || [];
+                
+                // แปลงข้อมูลให้เหมือนกับ format ใหม่
+                medicationReminders = [];
+                const groupedByMedication = {};
+                
+                originalReminders.forEach(reminder => {
+                    const medId = reminder.medication_id;
+                    if (!groupedByMedication[medId]) {
+                        groupedByMedication[medId] = {
+                            medication_id: medId,
+                            medication_name: reminder.name || 'ไม่ระบุชื่อยา',
+                            eye_display: reminder.eye_display || 'ทั้งสองตา',
+                            frequency: 'วันละ 1 ครั้ง',
+                            reminders: []
+                        };
+                    }
+                    
+                    groupedByMedication[medId].reminders.push({
+                        reminder_id: reminder.reminder_id,
+                        reminder_time: reminder.reminder_time,
+                        taken_today: 0,
+                        missed_today: 0
+                    });
+                });
+                
+                medicationReminders = Object.values(groupedByMedication);
+                
+                // ซ่อน Loading
+                document.getElementById('reminders-loading').style.display = 'none';
+                
+                // แสดงการเตือนทานยา
+                renderMedicationReminders();
+                
+            } catch (error) {
+                console.error('Error loading medication reminders:', error);
+                document.getElementById('reminders-loading').style.display = 'none';
+                showApiError('ไม่สามารถโหลดการเตือนทานยาได้');
+            }
+        }
+
+        // โหลดรายการยาสำหรับตั้งการแจ้งเตือน (ใช้ endpoint เดิมชั่วคราว)
+        async function loadMedications() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                // ใช้ endpoint เดิมก่อน จนกว่า backend จะพร้อม
+                const response = await fetch(`${API_BASE_URL}/patient/medications`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load medications');
+                }
+                
+                const data = await response.json();
+                const originalMedications = data.medications || [];
+                
+                // แปลงข้อมูลให้เหมือนกับ format ใหม่
+                medications = originalMedications.map(med => ({
+                    prescription_id: med.prescription_id,
+                    medication_id: med.medication_id,
+                    name: med.name,
+                    eye: med.eye || 'both',
+                    eye_display: med.eye === 'left' ? 'ตาซ้าย' : med.eye === 'right' ? 'ตาขวา' : 'ทั้งสองตา',
+                    dosage: med.dosage,
+                    frequency: med.frequency || 'วันละ 2 ครั้ง',
+                    strength: med.strength,
+                    daily_frequency: 2, // ค่าเริ่มต้น
+                    suggested_times: ['08:00', '20:00'], // ค่าเริ่มต้น
+                    usage_guidelines: med.form && med.form.includes('drop') ? [
+                        'ล้างมือให้สะอาดก่อนหยอดยา',
+                        'ดึงหนังตาล่างลงเล็กน้อย',
+                        'หยอดยาลงในถุงใต้หนังตาล่าง',
+                        'กดที่มุมในของตาประมาณ 1-2 นาที'
+                    ] : ['ใช้ยาตามที่แพทย์สั่ง'],
+                    is_eye_drop: med.form && med.form.includes('drop'),
+                    reminder_status: 'not_set' // ค่าเริ่มต้น
+                }));
+                
+                console.log('Loaded medications for reminder:', medications);
+                
+                // อัปเดตตัวเลือกยาในฟอร์ม
+                updateMedicationOptions();
+                
+            } catch (error) {
+                console.error('Error loading medications:', error);
+                showApiError('ไม่สามารถโหลดรายการยาได้');
+            }
+        }
+
+        // อัปเดตตัวเลือกยาในฟอร์ม (ปรับปรุงให้แสดงข้อมูลยามากขึ้น)
+        function updateMedicationOptions() {
+            const medicationSelect = document.getElementById('medication-name');
+            const editMedicationSelect = document.getElementById('edit-medication-name');
+            
+            // ล้างตัวเลือกเดิม
+            medicationSelect.innerHTML = '<option value="">เลือกยา</option>';
+            editMedicationSelect.innerHTML = '<option value="">เลือกยา</option>';
+            
+            if (!medications || medications.length === 0) {
+                medicationSelect.innerHTML += '<option value="" disabled>ไม่มีรายการยา</option>';
+                editMedicationSelect.innerHTML += '<option value="" disabled>ไม่มีรายการยา</option>';
+                return;
+            }
+            
+            // เพิ่มตัวเลือกยา พร้อมข้อมูลเพิ่มเติม
+            medications.forEach(medication => {
+                const reminderStatus = medication.reminder_status === 'set' ? ' (ตั้งแล้ว)' : ' (ยังไม่ตั้ง)';
+                const eyeInfo = medication.eye_display ? ` - ${medication.eye_display}` : '';
+                const strengthInfo = medication.strength ? ` ${medication.strength}` : '';
+                const frequencyInfo = medication.frequency ? ` (${medication.frequency})` : '';
+                
+                const optionText = `${medication.name}${strengthInfo}${eyeInfo}${frequencyInfo}${reminderStatus}`;
+                
+                const option1 = document.createElement('option');
+                option1.value = JSON.stringify({
+                    prescription_id: medication.prescription_id,
+                    medication_id: medication.medication_id,
+                    name: medication.name,
+                    eye: medication.eye,
+                    eye_display: medication.eye_display,
+                    dosage: medication.dosage,
+                    frequency: medication.frequency,
+                    daily_frequency: medication.daily_frequency,
+                    suggested_times: medication.suggested_times,
+                    usage_guidelines: medication.usage_guidelines,
+                    is_eye_drop: medication.is_eye_drop,
+                    strength: medication.strength
+                });
+                option1.textContent = optionText;
+                option1.style.color = medication.reminder_status === 'set' ? '#10B981' : '#374151';
+                
+                const option2 = document.createElement('option');
+                option2.value = option1.value;
+                option2.textContent = optionText;
+                option2.style.color = option1.style.color;
+                
+                medicationSelect.appendChild(option1);
+                editMedicationSelect.appendChild(option2);
+            });
+        }
+
+        // เมื่อเลือกยา - แสดงข้อมูลและคำแนะนำ
+        function onMedicationSelected() {
+            const medicationSelect = document.getElementById('medication-name');
+            const scheduleSelect = document.getElementById('medication-schedule');
+            const medicationInfo = document.getElementById('medication-info');
+            const usageGuidelines = document.getElementById('usage-guidelines');
+            
+            if (!medicationSelect.value) {
+                medicationInfo.style.display = 'none';
+                scheduleSelect.disabled = true;
+                scheduleSelect.innerHTML = '<option value="">กรุณาเลือกยาก่อน</option>';
+                return;
+            }
+            
+            try {
+                const medicationData = JSON.parse(medicationSelect.value);
+                console.log('Selected medication:', medicationData);
+                
+                // แสดงข้อมูลยา
+                const detailsDiv = document.getElementById('medication-details');
+                detailsDiv.innerHTML = `
+                    <div><strong>ชื่อยา:</strong> ${medicationData.name}</div>
+                    <div><strong>ตำแหน่ง:</strong> ${medicationData.eye_display || 'ไม่ระบุ'}</div>
+                    <div><strong>ขนาดยา:</strong> ${medicationData.dosage || 'ไม่ระบุ'}</div>
+                    <div><strong>ความถี่:</strong> ${medicationData.frequency || 'ไม่ระบุ'}</div>
+                `;
+                
+                // แสดงคำแนะนำการใช้ยา
+                if (medicationData.usage_guidelines && medicationData.usage_guidelines.length > 0) {
+                    const guidelinesList = document.getElementById('guidelines-list');
+                    guidelinesList.innerHTML = medicationData.usage_guidelines
+                        .map(guideline => `<li style="margin-bottom: 4px;">${guideline}</li>`)
+                        .join('');
+                    usageGuidelines.style.display = 'block';
+                } else {
+                    usageGuidelines.style.display = 'none';
+                }
+                
+                medicationInfo.style.display = 'block';
+                
+                // เปิดใช้งานการเลือกตารางเวลา
+                scheduleSelect.disabled = false;
+                scheduleSelect.innerHTML = `
+                    <option value="">เลือกตารางการทานยา</option>
+                    <option value="suggested">ใช้เวลาที่แนะนำ (แนะนำ)</option>
+                    <option value="custom">กำหนดเวลาเอง</option>
+                `;
+                
+                // เก็บข้อมูลยาไว้ใช้งาน
+                window.selectedMedicationData = medicationData;
+                
+            } catch (error) {
+                console.error('Error parsing medication data:', error);
+                alert('เกิดข้อผิดพลาดในการโหลดข้อมูลยา');
+            }
+        }
+
+        // เมื่อเลือกตารางการทานยา
+        function onScheduleSelected() {
+            const scheduleSelect = document.getElementById('medication-schedule');
+            const suggestedTimesGroup = document.getElementById('suggested-times-group');
+            const customTimesGroup = document.getElementById('custom-times-group');
+            
+            // ซ่อนทุกกลุ่ม
+            suggestedTimesGroup.style.display = 'none';
+            customTimesGroup.style.display = 'none';
+            
+            if (scheduleSelect.value === 'suggested' && window.selectedMedicationData) {
+                // แสดงเวลาที่แนะนำ
+                showSuggestedTimes();
+                suggestedTimesGroup.style.display = 'block';
+            } else if (scheduleSelect.value === 'custom') {
+                // แสดงการกำหนดเวลาเอง
+                customTimesGroup.style.display = 'block';
+                resetCustomTimes();
+            }
+        }
+
+        // แสดงเวลาที่แนะนำ
+        function showSuggestedTimes() {
+            if (!window.selectedMedicationData || !window.selectedMedicationData.suggested_times) {
+                return;
+            }
+            
+            const suggestedTimesList = document.getElementById('suggested-times-list');
+            const suggestedTimes = window.selectedMedicationData.suggested_times;
+            const dailyFrequency = window.selectedMedicationData.daily_frequency || suggestedTimes.length;
+            
+            const timeLabels = ['ตอนเช้า', 'ตอนเที่ยง', 'ตอนบ่าย', 'ตอนเย็น', 'ตอนค่ำ'];
+            
+            let timesHtml = `
+                <div style="margin-bottom: 12px;">
+                    <strong>แนะนำให้ใช้ยา ${dailyFrequency} ครั้งต่อวัน:</strong>
+                </div>
+            `;
+            
+            suggestedTimes.forEach((time, index) => {
+                const label = timeLabels[index] || `ครั้งที่ ${index + 1}`;
+                timesHtml += `
+                    <div class="suggested-time-item">
+                        <div class="suggested-time">${time}</div>
+                        <div class="suggested-label">${label}</div>
+                        <div class="suggested-badge">แนะนำ</div>
+                    </div>
+                `;
+            });
+            
+            timesHtml += `
+                <div style="margin-top: 12px; font-size: 13px; color: #6B7280;">
+                    💡 เวลาเหล่านี้คำนวณจากความถี่ของยาที่หมอสั่ง หากต้องการปรับเปลี่ยนให้เลือก "กำหนดเวลาเอง"
+                </div>
+            `;
+            
+            suggestedTimesList.innerHTML = timesHtml;
+        }
+
+        // รีเซ็ตการกำหนดเวลาเอง
+        function resetCustomTimes() {
+            const reminderTimes = document.getElementById('reminder-times');
+            
+            // ใช้เวลาที่แนะนำเป็นค่าเริ่มต้น (ถ้ามี)
+            if (window.selectedMedicationData && window.selectedMedicationData.suggested_times) {
+                const suggestedTimes = window.selectedMedicationData.suggested_times;
+                const timeLabels = ['มื้อเช้า', 'มื้อเที่ยง', 'มื้อบ่าย', 'มื้อเย็น', 'มื้อค่ำ'];
+                
+                reminderTimes.innerHTML = '';
+                
+                suggestedTimes.forEach((time, index) => {
+                    const timeItem = document.createElement('div');
+                    timeItem.className = 'time-item';
+                    timeItem.innerHTML = `
+                        <input type="time" class="time-input" value="${time}" required>
+                        <span class="time-label">${timeLabels[index] || `มื้อที่ ${index + 1}`}</span>
+                        <button type="button" class="time-remove" onclick="removeTimeInput(this)">×</button>
+                    `;
+                    reminderTimes.appendChild(timeItem);
+                });
+            } else {
+                // ใช้ค่าเริ่มต้น
+                reminderTimes.innerHTML = `
+                    <div class="time-item">
+                        <input type="time" class="time-input" value="08:00" required>
+                        <span class="time-label">มื้อเช้า</span>
+                        <button type="button" class="time-remove" onclick="removeTimeInput(this)">×</button>
+                    </div>
+                `;
+            }
+        }
+
+        // แสดงการเตือนทานยา
+        function renderMedicationReminders() {
+            const container = document.getElementById('reminders-container');
+            
+            if (!medicationReminders || medicationReminders.length === 0) {
+                document.getElementById('reminders-empty').style.display = 'block';
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'block';
+            container.innerHTML = '';
+            
+            medicationReminders.forEach(medicationGroup => {
+                const reminderItem = document.createElement('div');
+                reminderItem.className = 'medication-item';
+                
+                // สร้างข้อความเวลาทานยา
+                const timeTexts = medicationGroup.reminders.map(r => r.reminder_time).join(', ');
+                
+                reminderItem.innerHTML = `
+                    <div class="medication-header">
+                        <div>
+                            <div class="medication-name">${medicationGroup.medication_name}</div>
+                            <div class="medication-schedule">${medicationGroup.eye_display}</div>
+                            <div class="medication-time">เวลา: ${timeTexts}</div>
+                            <div class="medication-time">ความถี่: ${medicationGroup.frequency || 'ไม่ระบุ'}</div>
+                        </div>
+                        <div class="medication-actions">
+                            <button class="medication-action-btn" onclick="showEditMedicationReminderModal('${medicationGroup.medication_id}')">
+                                <span>✏️</span> แก้ไข
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(reminderItem);
+            });
+        }
+
+        // แสดง Modal เพิ่มการเตือนทานยา
+        function showAddMedicationReminderModal() {
+            // รีเซ็ตฟอร์ม
+            document.getElementById('addMedicationReminderForm').reset();
+            
+            // ซ่อนส่วนที่ไม่จำเป็น
+            document.getElementById('medication-info').style.display = 'none';
+            document.getElementById('suggested-times-group').style.display = 'none';
+            document.getElementById('custom-times-group').style.display = 'none';
+            
+            // รีเซ็ตการเลือกยา
+            const scheduleSelect = document.getElementById('medication-schedule');
+            scheduleSelect.disabled = true;
+            scheduleSelect.innerHTML = '<option value="">กรุณาเลือกยาก่อน</option>';
+            
+            // รีเซ็ตเวลาทานยา
+            const reminderTimes = document.getElementById('reminder-times');
+            reminderTimes.innerHTML = `
+                <div class="time-item">
+                    <input type="time" class="time-input" required>
+                    <span class="time-label">มื้อเช้า</span>
+                    <button type="button" class="time-remove" onclick="removeTimeInput(this)">×</button>
+                </div>
+            `;
+            
+            // ล้างข้อมูลยาที่เลือก
+            window.selectedMedicationData = null;
+            
+            // แสดง Modal
+            document.getElementById('addMedicationReminderModal').style.display = 'flex';
+        }
+
+        // แสดง Modal แก้ไขการเตือนทานยา
+        function showEditMedicationReminderModal(medicationId) {
+            const medicationGroup = medicationReminders.find(m => m.medication_id === medicationId);
+            
+            if (!medicationGroup) return;
+            
+            // เติมข้อมูลในฟอร์ม
+            document.getElementById('edit-medication-name').value = medicationId;
+            document.getElementById('edit-medication-note').value = '';
+            
+            // แสดง Modal
+            document.getElementById('editMedicationReminderModal').style.display = 'flex';
+        }
+
+        // เพิ่มการเตือนทานยา (ใช้ endpoint เดิมชั่วคราว)
+        async function addMedicationReminder() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            // แสดง Loading Spinner
+            const saveButton = document.getElementById('saveMedicationReminderBtn');
+            const spinner = document.getElementById('saveMedicationReminderSpinner');
+            saveButton.disabled = true;
+            spinner.style.display = 'inline-block';
+            
+            try {
+                // รับค่าจากฟอร์ม
+                const medicationSelect = document.getElementById('medication-name');
+                const schedule = document.getElementById('medication-schedule').value;
+                const note = document.getElementById('medication-note').value;
+                
+                // ตรวจสอบข้อมูลพื้นฐาน
+                if (!medicationSelect.value || !schedule) {
+                    alert('กรุณาเลือกยาและตารางการทานยา');
+                    return;
+                }
+                
+                const medicationData = JSON.parse(medicationSelect.value);
+                let reminderTimes = [];
+                
+                // รับค่าเวลาตามประเภทที่เลือก
+                if (schedule === 'suggested') {
+                    // ใช้เวลาที่แนะนำ
+                    reminderTimes = medicationData.suggested_times || ['08:00'];
+                } else if (schedule === 'custom') {
+                    // ใช้เวลาที่ผู้ใช้กำหนด
+                    const timeInputs = document.querySelectorAll('#custom-times-group .time-input');
+                    reminderTimes = Array.from(timeInputs).map(input => input.value).filter(time => time);
+                }
+                
+                if (reminderTimes.length === 0) {
+                    alert('กรุณาระบุเวลาทานยาอย่างน้อย 1 เวลา');
+                    return;
+                }
+                
+                // สร้างการเตือนสำหรับแต่ละเวลา (ใช้ endpoint เดิม)
+                let successCount = 0;
+                for (const time of reminderTimes) {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/patient/medication-reminders`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                prescription_id: medicationData.prescription_id,
+                                medication_id: medicationData.medication_id,
+                                reminder_time: time,
+                                days_of_week: '0,1,2,3,4,5,6', // ทุกวัน
+                                start_date: new Date().toISOString().split('T')[0],
+                                end_date: null,
+                                eye: medicationData.eye || 'both',
+                                drops_count: 1,
+                                notification_channels: 'app'
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            successCount++;
+                        }
+                    } catch (error) {
+                        console.error('Error creating reminder for time:', time, error);
+                    }
+                }
+                
+                if (successCount > 0) {
+                    // ปิด Modal
+                    closeModal('addMedicationReminderModal');
+                    
+                    // โหลดข้อมูลใหม่
+                    loadMedicationReminders();
+                    loadMedications();
+                    
+                    // แสดงข้อความสำเร็จ
+                    alert(`ตั้งการแจ้งเตือนยา "${medicationData.name}" สำเร็จ (${successCount} เวลา)`);
+                } else {
+                    throw new Error('ไม่สามารถสร้างการแจ้งเตือนได้');
+                }
+                
+            } catch (error) {
+                console.error('Error adding medication reminder:', error);
+                alert('ไม่สามารถตั้งการแจ้งเตือนยาได้ กรุณาลองใหม่อีกครั้ง');
+            } finally {
+                // ซ่อน Loading Spinner
+                saveButton.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+        // อัปเดตการเตือนทานยา
+        async function updateMedicationReminder() {
+            alert('ฟังก์ชันแก้ไขการเตือนทานยายังไม่พร้อมใช้งาน');
+        }
+
+        // ลบการเตือนทานยา
+        async function deleteMedicationReminder() {
+            alert('ฟังก์ชันลบการเตือนทานยายังไม่พร้อมใช้งาน');
+        }
+
+        // โหลดการตั้งค่าการแจ้งเตือน
+        async function loadNotificationSettings() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/patient/settings`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load notification settings');
+                }
+                
+                const data = await response.json();
+                const settings = data.settings;
+                
+                // อัปเดตการตั้งค่าการแจ้งเตือนในฟอร์ม
+                if (settings && settings.notification_preferences) {
+                    try {
+                        const notificationSettings = JSON.parse(settings.notification_preferences);
+                        
+                        // การเตือนทานยา
+                        if (notificationSettings.medication) {
+                            document.getElementById('medication-notifications').checked = notificationSettings.medication.enabled !== false;
+                            
+                            if (notificationSettings.medication.reminder_time !== undefined) {
+                                document.getElementById('medication-reminder-time').value = notificationSettings.medication.reminder_time;
+                            }
+                            
+                            if (notificationSettings.medication.repeat_interval !== undefined) {
+                                document.getElementById('medication-reminder-repeat').value = notificationSettings.medication.repeat_interval;
+                            }
+                            
+                            if (notificationSettings.medication.max_repeats !== undefined) {
+                                document.getElementById('medication-reminder-max-repeat').value = notificationSettings.medication.max_repeats;
+                            }
+                            
+                            if (notificationSettings.medication.sound) {
+                                document.getElementById('medication-reminder-sound').value = notificationSettings.medication.sound;
+                            }
+                        }
+                        
+                        // การเตือนนัดหมาย
+                        if (notificationSettings.appointment) {
+                            document.getElementById('appointment-notifications').checked = notificationSettings.appointment.enabled !== false;
+                            
+                            if (notificationSettings.appointment.days_before !== undefined) {
+                                document.getElementById('appointment-reminder-time').value = notificationSettings.appointment.days_before;
+                            }
+                            
+                            if (notificationSettings.appointment.reminder_hour) {
+                                document.getElementById('appointment-reminder-hour').value = notificationSettings.appointment.reminder_hour;
+                            }
+                            
+                            if (notificationSettings.appointment.remind_on_day !== undefined) {
+                                document.getElementById('appointment-reminder-day-of').checked = notificationSettings.appointment.remind_on_day;
+                            }
+                            
+                            if (notificationSettings.appointment.sound) {
+                                document.getElementById('appointment-reminder-sound').value = notificationSettings.appointment.sound;
+                            }
+                        }
+                        
+                        // การแจ้งเตือนอื่นๆ
+                        if (notificationSettings.iop_alerts !== undefined) {
+                            document.getElementById('iop-notifications').checked = notificationSettings.iop_alerts;
+                        }
+                        
+                        if (notificationSettings.medication_inventory_alerts !== undefined) {
+                            document.getElementById('medication-inventory-notifications').checked = notificationSettings.medication_inventory_alerts;
+                        }
+                        
+                        if (notificationSettings.test_result_alerts !== undefined) {
+                            document.getElementById('result-notifications').checked = notificationSettings.test_result_alerts;
+                        }
+                    } catch (parseError) {
+                        console.error('Error parsing notification settings:', parseError);
+                    }
+                }
+                
+                // อัปเดตการแสดงส่วนการตั้งค่า
+                updateSettingsVisibility();
+                
+            } catch (error) {
+                console.error('Error loading notification settings:', error);
+                showApiError('ไม่สามารถโหลดการตั้งค่าการแจ้งเตือนได้');
+            }
+        }
+
+        // บันทึกการตั้งค่าการแจ้งเตือน
+        async function saveNotificationSettings() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            // สร้างออบเจ็กต์การตั้งค่า
+            const notificationSettings = {
+                medication: {
+                    enabled: document.getElementById('medication-notifications').checked,
+                    reminder_time: parseInt(document.getElementById('medication-reminder-time').value),
+                    repeat_interval: parseInt(document.getElementById('medication-reminder-repeat').value),
+                    max_repeats: parseInt(document.getElementById('medication-reminder-max-repeat').value),
+                    sound: document.getElementById('medication-reminder-sound').value
+                },
+                appointment: {
+                    enabled: document.getElementById('appointment-notifications').checked,
+                    days_before: parseInt(document.getElementById('appointment-reminder-time').value),
+                    reminder_hour: document.getElementById('appointment-reminder-hour').value,
+                    remind_on_day: document.getElementById('appointment-reminder-day-of').checked,
+                    sound: document.getElementById('appointment-reminder-sound').value
+                },
+                iop_alerts: document.getElementById('iop-notifications').checked,
+                medication_inventory_alerts: document.getElementById('medication-inventory-notifications').checked,
+                test_result_alerts: document.getElementById('result-notifications').checked
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/patient/settings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        notification_preferences: JSON.stringify(notificationSettings)
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to save notification settings');
+                }
+                
+                alert('บันทึกการตั้งค่าเรียบร้อยแล้ว');
+                
+            } catch (error) {
+                console.error('Error saving notification settings:', error);
+                alert('ไม่สามารถบันทึกการตั้งค่าได้ กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        // อัปเดตการแสดงส่วนการตั้งค่า
+        function updateSettingsVisibility() {
+            // การเตือนทานยา
+            const medicationSettings = document.getElementById('medication-settings');
+            if (document.getElementById('medication-notifications').checked) {
+                medicationSettings.style.display = 'block';
+            } else {
+                medicationSettings.style.display = 'none';
+            }
+            
+            // การเตือนนัดหมาย
+            const appointmentSettings = document.getElementById('appointment-settings');
+            if (document.getElementById('appointment-notifications').checked) {
+                appointmentSettings.style.display = 'block';
+            } else {
+                appointmentSettings.style.display = 'none';
+            }
+        }
+
+        // เพิ่มช่องกรอกเวลาทานยา
+        function addTimeInput() {
+            const reminderTimes = document.getElementById('reminder-times');
+            const timeItems = reminderTimes.querySelectorAll('.time-item');
+            
+            const timeItem = document.createElement('div');
+            timeItem.className = 'time-item';
+            
+            let timeLabel = 'มื้อเช้า';
+            if (timeItems.length === 1) timeLabel = 'มื้อเที่ยง';
+            else if (timeItems.length === 2) timeLabel = 'มื้อเย็น';
+            else if (timeItems.length > 2) timeLabel = `มื้อที่ ${timeItems.length + 1}`;
+            
+            timeItem.innerHTML = `
+                <input type="time" class="time-input" required>
+                <span class="time-label">${timeLabel}</span>
+                <button type="button" class="time-remove" onclick="removeTimeInput(this)">×</button>
+            `;
+            
+            reminderTimes.appendChild(timeItem);
+        }
+
+        // เพิ่มช่องกรอกเวลาทานยา (สำหรับการแก้ไข)
+        function addEditTimeInput() {
+            const reminderTimes = document.getElementById('edit-reminder-times');
+            const timeItems = reminderTimes.querySelectorAll('.time-item');
+            
+            const timeItem = document.createElement('div');
+            timeItem.className = 'time-item';
+            
+            let timeLabel = 'มื้อเช้า';
+            if (timeItems.length === 1) timeLabel = 'มื้อเที่ยง';
+            else if (timeItems.length === 2) timeLabel = 'มื้อเย็น';
+            else if (timeItems.length > 2) timeLabel = `มื้อที่ ${timeItems.length + 1}`;
+            
+            timeItem.innerHTML = `
+                <input type="time" class="time-input" required>
+                <span class="time-label">${timeLabel}</span>
+                <button type="button" class="time-remove" onclick="removeEditTimeInput(this)">×</button>
+            `;
+            
+            reminderTimes.appendChild(timeItem);
+        }
+
+        // ลบช่องกรอกเวลาทานยา
+        function removeTimeInput(button) {
+            const timeItems = document.querySelectorAll('#reminder-times .time-item');
+            
+            if (timeItems.length > 1) {
+                const timeItem = button.closest('.time-item');
+                timeItem.remove();
+                
+                // อัปเดตป้ายกำกับเวลา
+                const updatedTimeItems = document.querySelectorAll('#reminder-times .time-item');
+                updatedTimeItems.forEach((item, index) => {
+                    const label = item.querySelector('.time-label');
+                    
+                    if (index === 0) label.textContent = 'มื้อเช้า';
+                    else if (index === 1) label.textContent = 'มื้อเที่ยง';
+                    else if (index === 2) label.textContent = 'มื้อเย็น';
+                    else label.textContent = `มื้อที่ ${index + 1}`;
+                });
+            } else {
+                alert('ต้องมีการเตือนทานยาอย่างน้อย 1 เวลา');
+            }
+        }
+
+        // ลบช่องกรอกเวลาทานยา (สำหรับการแก้ไข)
+        function removeEditTimeInput(button) {
+            const timeItems = document.querySelectorAll('#edit-reminder-times .time-item');
+            
+            if (timeItems.length > 1) {
+                const timeItem = button.closest('.time-item');
+                timeItem.remove();
+                
+                // อัปเดตป้ายกำกับเวลา
+                const updatedTimeItems = document.querySelectorAll('#edit-reminder-times .time-item');
+                updatedTimeItems.forEach((item, index) => {
+                    const label = item.querySelector('.time-label');
+                    
+                    if (index === 0) label.textContent = 'มื้อเช้า';
+                    else if (index === 1) label.textContent = 'มื้อเที่ยง';
+                    else if (index === 2) label.textContent = 'มื้อเย็น';
+                    else label.textContent = `มื้อที่ ${index + 1}`;
+                });
+            } else {
+                alert('ต้องมีการเตือนทานยาอย่างน้อย 1 เวลา');
+            }
+        }
+
+        // แสดงข้อความแจ้งเตือนความผิดพลาด API
+        function showApiError(message) {
+            const apiError = document.getElementById('apiError');
+            const apiErrorMessage = document.getElementById('apiErrorMessage');
+            
+            apiErrorMessage.textContent = message;
+            apiError.style.display = 'flex';
+        }
+
+        // ซ่อนข้อความแจ้งเตือนความผิดพลาด API
+        function hideApiError() {
+            document.getElementById('apiError').style.display = 'none';
+        }
+
+        // สลับการแสดงผลเมนูผู้ใช้
+        function toggleUserMenu() {
+            document.getElementById('userMenu').classList.toggle('show');
+        }
+
+        // สลับการแสดงผล Sidebar (สำหรับมือถือ)
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // ปิด Modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // แปลงเวลาเป็นข้อความระยะเวลา
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSec = Math.round(diffMs / 1000);
+            const diffMin = Math.round(diffSec / 60);
+            const diffHour = Math.round(diffMin / 60);
+            const diffDay = Math.round(diffHour / 24);
+            
+            if (diffSec < 60) {
+                return 'เมื่อสักครู่';
+            } else if (diffMin < 60) {
+                return `${diffMin} นาทีที่แล้ว`;
+            } else if (diffHour < 24) {
+                return `${diffHour} ชั่วโมงที่แล้ว`;
+            } else if (diffDay < 7) {
+                return `${diffDay} วันที่แล้ว`;
+            } else {
+                // ใช้รูปแบบวันที่ปกติ
+                const day = date.getDate();
+                const month = date.getMonth() + 1;
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+            }
+        }
+
+        // Logout function
+        function logout() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            fetch(`${API_BASE_URL}/auth/logout`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(() => {
+                localStorage.removeItem('gtms_token');
+                localStorage.removeItem('gtms_user');
+                window.location.href = 'index.html';
+            })
+            .catch(error => {
+                console.error('Logout error:', error);
+                // Force logout even if API fails
+                localStorage.removeItem('gtms_token');
+                localStorage.removeItem('gtms_user');
+                window.location.href = 'index.html';
+            });
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // ตรวจสอบการเข้าสู่ระบบ
+            if (!checkAuth()) {
+                return;
+            }
+            
+            // โหลดข้อมูลผู้ใช้งาน
+            loadUserProfile();
+            
+            // Event listeners สำหรับการตั้งค่าการแจ้งเตือน
+            document.getElementById('medication-notifications').addEventListener('change', updateSettingsVisibility);
+            document.getElementById('appointment-notifications').addEventListener('change', updateSettingsVisibility);
+            
+            // ตรวจสอบการคลิกนอก dropdown เพื่อปิด
+            document.addEventListener('click', function(event) {
+                const userMenu = document.getElementById('userMenu');
+                const userDropdown = document.querySelector('.user-dropdown');
+                
+                if (userMenu && userMenu.classList.contains('show') && userDropdown && !userDropdown.contains(event.target)) {
+                    userMenu.classList.remove('show');
+                }
+                
+                // ปิด modal เมื่อคลิกนอก modal
+                document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+                    if (backdrop.style.display === 'flex' && !backdrop.querySelector('.modal').contains(event.target)) {
+                        backdrop.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,2230 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ข้อมูลส่วนตัว - ระบบติดตามการรักษาโรคต้อหิน</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS styles (เหมือนเดิม) */
+        :root {
+            --primary: #00A8A8;
+            --primary-dark: #007878;
+            --primary-light: #E0F2F1;
+            --secondary: #00CECE;
+            --dark: #324047;
+            --gray: #6B7280;
+            --light-gray: #F3F4F6;
+            --white: #FFFFFF;
+            --error: #EF4444;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --info: #3B82F6;
+            --border: #E5E7EB;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background-color: #F9FAFB;
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        /* Layout */
+        .layout {
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background-color: var(--white);
+            height: 100vh;
+            position: fixed;
+            box-shadow: var(--shadow);
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 20;
+            background: var(--primary);
+            color: var(--white);
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        .logo-container {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background-color: var(--primary-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .logo-subtitle {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .menu {
+            padding: 20px 0;
+            overflow-y: auto;
+            max-height: calc(100vh - 91px);
+        }
+
+        .menu-label {
+            padding: 0 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--gray);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        /* Header */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .notifications-btn {
+            background: var(--white);
+            border: 1px solid var(--border);
+            color: var(--gray);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .notifications-indicator {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            background-color: var(--error);
+            border-radius: 50%;
+            border: 2px solid var(--white);
+            display: none;
+        }
+
+        .user-dropdown {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 6px 8px 6px 6px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: var(--primary-light);
+            border-radius: 50%;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+
+        /* User Menu */
+        .user-menu {
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+            width: 200px;
+            z-index: 100;
+            display: none;
+        }
+
+        .user-menu.show {
+            display: block;
+        }
+
+        .user-menu-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-menu-item:hover {
+            background-color: var(--light-gray);
+        }
+
+        .user-menu-logout {
+            color: var(--error);
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card-action {
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Profile Styles */
+        .profile-avatar-container {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            background-color: var(--primary-light);
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .profile-name {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .profile-id {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .profile-section {
+            margin-bottom: 32px;
+        }
+
+        .section-header {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-edit {
+            font-size: 14px;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-edit svg {
+            margin-right: 4px;
+        }
+
+        .profile-row {
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .profile-field {
+            flex: 1;
+            min-width: 250px;
+            margin-bottom: 16px;
+            padding-right: 16px;
+        }
+
+        .profile-label {
+            font-size: 13px;
+            color: var(--gray);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .profile-value {
+            font-size: 15px;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -8px;
+        }
+
+        .form-col {
+            flex: 1;
+            min-width: 250px;
+            padding: 0 8px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--dark);
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 168, 168, 0.1);
+        }
+
+        .form-help {
+            font-size: 13px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        .form-radio-group {
+            display: flex;
+            gap: 16px;
+        }
+
+        .form-radio {
+            display: flex;
+            align-items: center;
+        }
+
+        .form-radio input {
+            margin-right: 8px;
+        }
+
+        /* Family History */
+        .family-history-item {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .family-relation {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .family-details {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .family-date {
+            font-size: 13px;
+            color: var(--gray);
+        }
+
+        .add-history-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            width: 100%;
+            background: var(--light-gray);
+            color: var(--gray);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-history-btn:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary-light);
+        }
+
+        .add-history-btn svg {
+            margin-right: 8px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            font-weight: 500;
+            color: var(--gray);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: var(--primary);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* Medical History */
+        .medical-history-item {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .medical-condition {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .medical-details {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .medical-date {
+            font-size: 13px;
+            color: var(--gray);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+
+        /* API Error */
+        .api-error {
+            background-color: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            display: none;
+        }
+
+        .api-error-icon {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(239, 68, 68, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--error);
+            flex-shrink: 0;
+        }
+
+        .api-error-content {
+            flex: 1;
+        }
+
+        .api-error-title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .api-error-message {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .api-error-retry {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background-color: var(--error);
+            color: var(--white);
+            transition: all 0.3s ease;
+        }
+
+        .api-error-retry:hover {
+            background-color: #dc2626;
+        }
+
+        /* Loading Spinner */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 168, 168, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 16px;
+        }
+
+        .loading-text {
+            font-size: 15px;
+            color: var(--gray);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            font-size: 18px;
+            color: var(--gray);
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background-color: var(--gray);
+            color: var(--white);
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .modal-btn.secondary {
+            background-color: var(--light-gray);
+            color: var(--dark);
+        }
+
+        .modal-btn.danger {
+            background-color: var(--error);
+            color: var(--white);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding-top: 60px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 8px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .form-col {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+    
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="logo-container">
+                <div class="logo">G</div>
+                <div class="logo-text">
+                    <div class="logo-title">GTMS</div>
+                    <div class="logo-subtitle">ระบบติดตามการรักษาโรคต้อหิน</div>
+                </div>
+            </div>
+            
+            <nav class="menu">
+                <p class="menu-label">หน้าหลัก</p>
+                <a href="dashboard.html" class="menu-item">
+                    <div class="menu-icon">📊</div>
+                    แดชบอร์ด
+                </a>
+                <a href="appointments.html" class="menu-item">
+                    <div class="menu-icon">📅</div>
+                    การนัดหมาย
+                </a>
+                
+                <p class="menu-label">การติดตามการรักษา</p>
+                <a href="iop-tracking.html" class="menu-item">
+                    <div class="menu-icon">👁️</div>
+                    ค่าความดันลูกตา
+                </a>
+                <a href="medications.html" class="menu-item">
+                    <div class="menu-icon">💊</div>
+                    ยาและการรักษา
+                </a>
+                <a href="eye-tests.html" class="menu-item">
+                    <div class="menu-icon">📝</div>
+                    ผลการตรวจวัด
+                </a>
+                
+                <p class="menu-label">อื่นๆ</p>
+                <a href="profile.html" class="menu-item active">
+                    <div class="menu-icon">👤</div>
+                    ข้อมูลส่วนตัว
+                </a>
+                <a href="notifications.html" class="menu-item">
+                    <div class="menu-icon">🔔</div>
+                    การแจ้งเตือน
+                </a>
+                <a href="documents.html" class="menu-item">
+                    <div class="menu-icon">📄</div>
+                    เอกสารทางการแพทย์
+                </a>
+                <a href="settings.html" class="menu-item">
+                    <div class="menu-icon">⚙️</div>
+                    ตั้งค่า
+                </a>
+                <a href="#" class="menu-item" onclick="logout()">
+                    <div class="menu-icon">🚪</div>
+                    ออกจากระบบ
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="api-error" id="apiError">
+                <div class="api-error-icon">⚠️</div>
+                <div class="api-error-content">
+                    <div class="api-error-title">ไม่สามารถโหลดข้อมูลได้</div>
+                    <div class="api-error-message" id="apiErrorMessage">กรุณาลองใหม่อีกครั้ง</div>
+                </div>
+                <button class="api-error-retry" onclick="loadProfile()">ลองใหม่</button>
+            </div>
+
+            <div class="content-header">
+                <h1 class="page-title">ข้อมูลส่วนตัว</h1>
+                
+                <div class="user-info">
+                    <button class="notifications-btn" onclick="location.href='notifications.html'">
+                        🔔
+                        <span class="notifications-indicator" id="notificationsIndicator"></span>
+                    </button>
+                    
+                    <div class="user-dropdown" onclick="toggleUserMenu()">
+                        <div class="user-avatar" id="headerUserAvatar">-</div>
+                        <span class="user-name" id="headerUserName">กำลังโหลด...</span>
+                        <span>▼</span>
+                    </div>
+
+                    <div class="user-menu" id="userMenu">
+                        <a href="profile.html" class="user-menu-item">
+                            <div class="menu-icon">👤</div>
+                            โปรไฟล์
+                        </a>
+                        <a href="settings.html" class="user-menu-item">
+                            <div class="menu-icon">⚙️</div>
+                            ตั้งค่า
+                        </a>
+                        <a href="#" class="user-menu-item user-menu-logout" onclick="logout()">
+                            <div class="menu-icon">🚪</div>
+                            ออกจากระบบ
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" data-tab="personal" onclick="switchTab('personal')">ข้อมูลส่วนตัว</div>
+                <div class="tab" data-tab="medical" onclick="switchTab('medical')">ประวัติทางการแพทย์</div>
+                <div class="tab" data-tab="family" onclick="switchTab('family')">ประวัติโรคต้อหินในครอบครัว</div>
+            </div>
+
+            <div id="personalTab" class="tab-content">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="profile-avatar-container">
+                            <div class="profile-avatar" id="profileAvatar">-</div>
+                            <h2 class="profile-name" id="profileName">กำลังโหลด...</h2>
+                            <div class="profile-id" id="profileId"></div>
+                        </div>
+
+                        <div class="profile-section">
+                            <div class="section-header">
+                                <span>ข้อมูลส่วนตัว</span>
+                                <span class="section-edit" onclick="showEditPersonalInfoModal()">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                    แก้ไข
+                                </span>
+                            </div>
+                            
+                            <div class="profile-row">
+                                <div class="profile-field">
+                                    <div class="profile-label">ชื่อ-นามสกุล</div>
+                                    <div class="profile-value" id="fullNameValue">-</div>
+                                </div>
+                                <div class="profile-field">
+                                    <div class="profile-label">เพศ</div>
+                                    <div class="profile-value" id="genderValue">-</div>
+                                </div>
+                            </div>
+                            
+                            <div class="profile-row">
+                                <div class="profile-field">
+                                    <div class="profile-label">วันเกิด</div>
+                                    <div class="profile-value" id="birthDateValue">-</div>
+                                </div>
+                                <div class="profile-field">
+                                    <div class="profile-label">อายุ</div>
+                                    <div class="profile-value" id="ageValue">-</div>
+                                </div>
+                            </div>
+                            
+                            <div class="profile-row">
+                                <div class="profile-field">
+                                    <div class="profile-label">อีเมล</div>
+                                    <div class="profile-value" id="emailValue">-</div>
+                                </div>
+                                <div class="profile-field">
+                                    <div class="profile-label">เบอร์โทรศัพท์</div>
+                                    <div class="profile-value" id="phoneValue">-</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="profile-section">
+                            <div class="section-header">
+                                <span>ที่อยู่</span>
+                                <span class="section-edit" onclick="showEditAddressModal()">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                    แก้ไข
+                                </span>
+                            </div>
+                            
+                            <div class="profile-row">
+                                <div class="profile-field">
+                                    <div class="profile-label">ที่อยู่</div>
+                                    <div class="profile-value" id="addressValue">-</div>
+                                </div>
+                            </div>
+                            
+                            <div class="profile-row">
+                                <div class="profile-field">
+                                    <div class="profile-label">ตำบล/แขวง</div>
+                                    <div class="profile-value" id="subdistrictValue">-</div>
+                                </div>
+                                <div class="profile-field">
+                                    <div class="profile-label">อำเภอ/เขต</div>
+                                    <div class="profile-value" id="districtValue">-</div>
+                                </div>
+                            </div>
+                            
+                            <div class="profile-row">
+                                <div class="profile-field">
+                                    <div class="profile-label">จังหวัด</div>
+                                    <div class="profile-value" id="provinceValue">-</div>
+                                </div>
+                                <div class="profile-field">
+                                    <div class="profile-label">รหัสไปรษณีย์</div>
+                                    <div class="profile-value" id="postalCodeValue">-</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="profile-section">
+                            <div class="section-header">
+                                <span>ข้อมูลผู้ติดต่อฉุกเฉิน</span>
+                                <span class="section-edit" onclick="showEditEmergencyContactModal()">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                    แก้ไข
+                                </span>
+                            </div>
+                            
+                            <div class="profile-row">
+                                <div class="profile-field">
+                                    <div class="profile-label">ชื่อ-นามสกุล</div>
+                                    <div class="profile-value" id="emergencyNameValue">-</div>
+                                </div>
+                                <div class="profile-field">
+                                    <div class="profile-label">ความสัมพันธ์</div>
+                                    <div class="profile-value" id="emergencyRelationValue">-</div>
+                                </div>
+                            </div>
+                            
+                            <div class="profile-row">
+                                <div class="profile-field">
+                                    <div class="profile-label">เบอร์โทรศัพท์</div>
+                                    <div class="profile-value" id="emergencyPhoneValue">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="medicalTab" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">ประวัติทางการแพทย์</h2>
+                        <span class="card-action" onclick="showAddMedicalHistoryModal()">+ เพิ่มประวัติทางการแพทย์</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="medicalHistoryContainer">
+                            </div>
+                        
+                        <div class="empty-state" id="medicalHistoryEmpty" style="display: none;">
+                            <div class="empty-state-icon">📋</div>
+                            <div class="empty-state-text">ไม่มีประวัติทางการแพทย์</div>
+                            <button class="modal-btn primary" onclick="showAddMedicalHistoryModal()">เพิ่มประวัติทางการแพทย์</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="familyTab" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">ประวัติโรคต้อหินในครอบครัว</h2>
+                        <span class="card-action" onclick="showAddFamilyHistoryModal()">+ เพิ่มประวัติครอบครัว</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="familyHistoryContainer">
+                            </div>
+                        
+                        <div class="empty-state" id="familyHistoryEmpty" style="display: none;">
+                            <div class="empty-state-icon">👪</div>
+                            <div class="empty-state-text">ไม่มีประวัติโรคต้อหินในครอบครัว</div>
+                            <button class="modal-btn primary" onclick="showAddFamilyHistoryModal()">เพิ่มประวัติครอบครัว</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-backdrop" id="editPersonalInfoModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">แก้ไขข้อมูลส่วนตัว</h2>
+                <button class="modal-close" onclick="closeModal('editPersonalInfoModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="editPersonalInfoForm">
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">ชื่อ</label>
+                                <input type="text" class="form-input" id="firstName" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">นามสกุล</label>
+                                <input type="text" class="form-input" id="lastName" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">เพศ</label>
+                        <div class="form-radio-group">
+                            <label class="form-radio">
+                                <input type="radio" name="gender" value="male" id="genderMale"> ชาย
+                            </label>
+                            <label class="form-radio">
+                                <input type="radio" name="gender" value="female" id="genderFemale"> หญิง
+                            </label>
+                            <label class="form-radio">
+                                <input type="radio" name="gender" value="other" id="genderOther"> อื่นๆ
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">วันเกิด</label>
+                        <input type="date" class="form-input" id="birthDate" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">อีเมล</label>
+                                <input type="email" class="form-input" id="email">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">เบอร์โทรศัพท์</label>
+                                <input type="tel" class="form-input" id="phone" required>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('editPersonalInfoModal')">ยกเลิก</button>
+                <button class="modal-btn primary" id="savePersonalInfoBtn" onclick="updatePersonalInfo()">
+                    <span id="savePersonalInfoSpinner" class="loading-spinner" style="display: none;"></span>
+                    บันทึก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="editAddressModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">แก้ไขที่อยู่</h2>
+                <button class="modal-close" onclick="closeModal('editAddressModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="editAddressForm">
+                    <div class="form-group">
+                        <label class="form-label">ที่อยู่</label>
+                        <input type="text" class="form-input" id="address" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">ตำบล/แขวง</label>
+                                <input type="text" class="form-input" id="subdistrict" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">อำเภอ/เขต</label>
+                                <input type="text" class="form-input" id="district" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">จังหวัด</label>
+                                <input type="text" class="form-input" id="province" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">รหัสไปรษณีย์</label>
+                                <input type="text" class="form-input" id="postalCode" required>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('editAddressModal')">ยกเลิก</button>
+                <button class="modal-btn primary" id="saveAddressBtn" onclick="updateAddress()">
+                    <span id="saveAddressSpinner" class="loading-spinner" style="display: none;"></span>
+                    บันทึก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="editEmergencyContactModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">แก้ไขข้อมูลผู้ติดต่อฉุกเฉิน</h2>
+                <button class="modal-close" onclick="closeModal('editEmergencyContactModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="editEmergencyContactForm">
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">ชื่อ-นามสกุล</label>
+                                <input type="text" class="form-input" id="emergencyName" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">ความสัมพันธ์</label>
+                                <input type="text" class="form-input" id="emergencyRelation" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">เบอร์โทรศัพท์</label>
+                        <input type="tel" class="form-input" id="emergencyPhone" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('editEmergencyContactModal')">ยกเลิก</button>
+                <button class="modal-btn primary" id="saveEmergencyContactBtn" onclick="updateEmergencyContact()">
+                    <span id="saveEmergencyContactSpinner" class="loading-spinner" style="display: none;"></span>
+                    บันทึก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="addFamilyHistoryModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">เพิ่มประวัติโรคต้อหินในครอบครัว</h2>
+                <button class="modal-close" onclick="closeModal('addFamilyHistoryModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="addFamilyHistoryForm">
+                    <div class="form-group">
+                        <label class="form-label">ความสัมพันธ์</label>
+                        <select class="form-select" id="familyRelation" required>
+                            <option value="">เลือกความสัมพันธ์</option>
+                            <option value="father">บิดา</option>
+                            <option value="mother">มารดา</option>
+                            <option value="sibling">พี่น้อง</option>
+                            <option value="child">บุตร</option>
+                            <option value="grandparent">ปู่/ย่า/ตา/ยาย</option>
+                            <option value="other">อื่นๆ</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="otherRelationGroup" style="display: none;">
+                        <label class="form-label">ระบุความสัมพันธ์อื่นๆ</label>
+                        <input type="text" class="form-input" id="otherRelation">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">ชนิดของโรคต้อหิน</label>
+                        <select class="form-select" id="glaucomaType" required>
+                            <option value="">เลือกชนิดของโรคต้อหิน</option>
+                            <option value="open-angle">ต้อหินมุมเปิด (Open-angle Glaucoma)</option>
+                            <option value="angle-closure">ต้อหินมุมปิด (Angle-closure Glaucoma)</option>
+                            <option value="normal-tension">ต้อหินความดันปกติ (Normal-tension Glaucoma)</option>
+                            <option value="congenital">ต้อหินแต่กำเนิด (Congenital Glaucoma)</option>
+                            <option value="secondary">ต้อหินทุติยภูมิ (Secondary Glaucoma)</option>
+                            <option value="unknown">ไม่ทราบชนิด</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">อายุที่ตรวจพบ</label>
+                        <input type="number" class="form-input" id="diagnosisAge" min="0" max="120">
+                        <div class="form-help">หากไม่ทราบอายุที่แน่ชัด สามารถเว้นว่างได้</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">รายละเอียดเพิ่มเติม</label>
+                        <textarea class="form-input" id="familyDetails" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('addFamilyHistoryModal')">ยกเลิก</button>
+                <button class="modal-btn primary" id="saveFamilyHistoryBtn" onclick="addFamilyHistory()">
+                    <span id="saveFamilyHistorySpinner" class="loading-spinner" style="display: none;"></span>
+                    บันทึก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="addMedicalHistoryModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">เพิ่มประวัติทางการแพทย์</h2>
+                <button class="modal-close" onclick="closeModal('addMedicalHistoryModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="addMedicalHistoryForm">
+                    <div class="form-group">
+                        <label class="form-label">โรคประจำตัว/อาการ</label>
+                        <input type="text" class="form-input" id="medicalCondition" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">ประเภท</label>
+                        <select class="form-select" id="medicalType" required>
+                            <option value="">เลือกประเภท</option>
+                            <option value="chronic">โรคประจำตัว</option>
+                            <option value="allergy">อาการแพ้</option>
+                            <option value="surgery">การผ่าตัด</option>
+                            <option value="eye-injury">การบาดเจ็บที่ตา</option>
+                            <option value="other">อื่นๆ</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">ปีที่เริ่มมีอาการ/ตรวจพบ/รักษา</label>
+                        <input type="number" class="form-input" id="diagnosisYear" min="1900" max="2100">
+                        <div class="form-help">หากไม่ทราบปีที่แน่ชัด สามารถเว้นว่างได้</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">รายละเอียด</label>
+                        <textarea class="form-input" id="medicalDetails" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">การรักษาที่ได้รับ</label>
+                        <textarea class="form-input" id="medicalTreatment" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('addMedicalHistoryModal')">ยกเลิก</button>
+                <button class="modal-btn primary" id="saveMedicalHistoryBtn" onclick="addMedicalHistory()">
+                    <span id="saveMedicalHistorySpinner" class="loading-spinner" style="display: none;"></span>
+                    บันทึก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:5001/api'; // เปลี่ยน API_BASE_URL ให้ตรงกับ Backend
+        let patientId = '';
+        let userData = null;
+        let familyHistory = [];
+        let medicalHistory = [];
+        let currentTab = 'personal';
+
+        // ตรวจสอบการเข้าสู่ระบบ
+        function checkAuth() {
+            const token = localStorage.getItem('gtms_token');
+            
+            if (!token) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            
+            return token;
+        }
+
+        // สลับการแสดงแท็บ
+        function switchTab(tab) {
+            // ซ่อนเนื้อหาทั้งหมด
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            
+            // แสดงเนื้อหาที่เลือก
+            document.getElementById(`${tab}Tab`).style.display = 'block';
+            
+            // อัปเดตแท็บที่เลือก
+            document.querySelectorAll('.tab').forEach(tabEl => {
+                tabEl.classList.remove('active');
+            });
+            document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+            
+            // เก็บแท็บปัจจุบัน
+            currentTab = tab;
+            
+            // โหลดข้อมูลตามแท็บ
+            if (tab === 'family' && familyHistory.length === 0) { // โหลดข้อมูลเมื่อแท็บถูกเปิดและยังไม่มีข้อมูล
+                loadFamilyHistory();
+            } else if (tab === 'medical' && medicalHistory.length === 0) { // โหลดข้อมูลเมื่อแท็บถูกเปิดและยังไม่มีข้อมูล
+                loadMedicalHistory();
+            }
+        }
+
+        // แสดงข้อความแจ้งเตือนความผิดพลาด API
+        function showApiError(message) {
+            const apiError = document.getElementById('apiError');
+            const apiErrorMessage = document.getElementById('apiErrorMessage');
+            
+            apiErrorMessage.textContent = message;
+            apiError.style.display = 'flex';
+        }
+
+        // ซ่อนข้อความแจ้งเตือนความผิดพลาด API
+        function hideApiError() {
+            document.getElementById('apiError').style.display = 'none';
+        }
+
+        // สลับการแสดงผลเมนูผู้ใช้
+        function toggleUserMenu() {
+            document.getElementById('userMenu').classList.toggle('show');
+        }
+
+        // สลับการแสดงผล Sidebar (สำหรับมือถือ)
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // โหลดข้อมูลโปรไฟล์
+        async function loadProfile() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            hideApiError();
+            
+            try {
+                // แก้ไข API Endpoint: ใช้ /api/patient/profile แทน /user/profile
+                const response = await fetch(`${API_BASE_URL}/patient/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load user profile');
+                }
+                
+                // Backend ส่งข้อมูลโปรไฟล์มาใน key 'profile'
+                const responseData = await response.json();
+                userData = responseData.profile; // ดึงข้อมูลจาก .profile
+                patientId = userData.patient_id; // ใช้ patient_id จากข้อมูล profile
+                
+                // อัปเดตข้อมูลส่วนตัว
+                updateProfileUI();
+                
+                // โหลดข้อมูลตามแท็บที่กำลังแสดง (ถ้ามี)
+                // ไม่ต้องเรียกซ้ำใน initial load เพราะ switchTab จะเรียกเองเมื่อแท็บถูกเปิด
+                if (currentTab === 'family') {
+                    loadFamilyHistory();
+                } else if (currentTab === 'medical') {
+                    loadMedicalHistory();
+                }
+                
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showApiError('ไม่สามารถโหลดข้อมูลโปรไฟล์ได้');
+            }
+        }
+
+        // อัปเดต UI โปรไฟล์
+        function updateProfileUI() {
+            if (!userData) return;
+            
+            // อัปเดตโปรไฟล์ในส่วนหัว (ใช้ first_name, last_name จาก userData โดยตรง)
+            const headerUserName = document.getElementById('headerUserName');
+            const headerUserAvatar = document.getElementById('headerUserAvatar');
+            
+            if (userData.first_name && userData.last_name) {
+                headerUserName.textContent = `${userData.first_name} ${userData.last_name}`;
+                headerUserAvatar.textContent = userData.first_name.charAt(0);
+            }
+            
+            // อัปเดตโปรไฟล์หลัก
+            const profileName = document.getElementById('profileName');
+            const profileId = document.getElementById('profileId');
+            const profileAvatar = document.getElementById('profileAvatar');
+            
+            profileName.textContent = `${userData.first_name} ${userData.last_name}`;
+            profileId.textContent = `HN: ${userData.hn}`; // ใช้ HN จาก backend
+            profileAvatar.textContent = userData.first_name.charAt(0);
+            
+            // อัปเดตข้อมูลส่วนตัว
+            document.getElementById('fullNameValue').textContent = `${userData.first_name} ${userData.last_name}`;
+            document.getElementById('genderValue').textContent = getGenderText(userData.gender);
+            
+            if (userData.date_of_birth) { // เปลี่ยนจาก birth_date เป็น date_of_birth
+                const birthDate = new Date(userData.date_of_birth);
+                document.getElementById('birthDateValue').textContent = formatThaiDate(birthDate);
+                document.getElementById('ageValue').textContent = calculateAge(birthDate);
+            }
+            
+            // Backend's /patient/profile endpoint does not directly return user's email/phone.
+            // These should ideally come from a /api/auth/me endpoint or be stored with patient profile.
+            // For now, assuming email/phone might be part of the patient profile or fetched separately if available.
+            // If the /patient/profile endpoint *does* include user-level fields like email, use them directly.
+            // Based on the backend code, it joins with Users table and includes email, phone.
+            document.getElementById('emailValue').textContent = userData.email || '-';
+            document.getElementById('phoneValue').textContent = userData.phone || '-';
+            
+            // อัปเดตที่อยู่
+            document.getElementById('addressValue').textContent = userData.address || '-'; // ใช้ address จาก backend
+            // Backend schema for PatientProfiles does not explicitly have subdistrict, district, province, postal_code as separate columns.
+            // If they are part of the 'address' string or need parsing, this needs adjustment.
+            // Assuming for now, 'address' contains the full address and other fields might be null or need parsing.
+            document.getElementById('subdistrictValue').textContent = '-'; // ไม่มีใน backend current schema
+            document.getElementById('districtValue').textContent = '-'; // ไม่มีใน backend current schema
+            document.getElementById('provinceValue').textContent = '-'; // ไม่มีใน backend current schema
+            document.getElementById('postalCodeValue').textContent = '-'; // ไม่มีใน backend current schema
+            
+            // อัปเดตข้อมูลผู้ติดต่อฉุกเฉิน
+            // Backend fields are emergency_contact_name, emergency_contact_phone, emergency_contact_relation
+            document.getElementById('emergencyNameValue').textContent = userData.emergency_contact_name || '-';
+            document.getElementById('emergencyRelationValue').textContent = userData.emergency_contact_relation || '-';
+            document.getElementById('emergencyPhoneValue').textContent = userData.emergency_contact_phone || '-';
+        }
+
+        // โหลดประวัติโรคต้อหินในครอบครัว
+        async function loadFamilyHistory() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                // แก้ไข API Endpoint: ใช้ /api/patient/family-history
+                const response = await fetch(`${API_BASE_URL}/patient/family-history`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load family history');
+                }
+                
+                const responseData = await response.json();
+                familyHistory = responseData.family_history; // Backend ส่งมาใน key 'family_history'
+                
+                // แสดงประวัติโรคต้อหินในครอบครัว
+                renderFamilyHistory();
+                
+            } catch (error) {
+                console.error('Error loading family history:', error);
+                showApiError('ไม่สามารถโหลดประวัติโรคต้อหินในครอบครัวได้');
+            }
+        }
+
+        // แสดงประวัติโรคต้อหินในครอบครัว
+        function renderFamilyHistory() {
+            const container = document.getElementById('familyHistoryContainer');
+            const emptyState = document.getElementById('familyHistoryEmpty');
+            
+            if (!familyHistory || familyHistory.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            container.innerHTML = '';
+            
+            familyHistory.forEach(history => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'family-history-item';
+                
+                const relationText = getRelationText(history.relationship); // Backend ใช้ relationship
+                const glaucomaTypeText = getGlaucomaTypeText(history.glaucoma_type);
+                
+                historyItem.innerHTML = `
+                    <div class="family-relation">${relationText}</div>
+                    <div class="family-details">
+                        <strong>ชนิดของโรคต้อหิน:</strong> ${glaucomaTypeText}
+                    </div>
+                    ${history.age_at_diagnosis ? `
+                        <div class="family-details">
+                            <strong>อายุที่ตรวจพบ:</strong> ${history.age_at_diagnosis} ปี
+                        </div>
+                    ` : ''}
+                    ${history.notes ? ` <div class="family-details">
+                            <strong>รายละเอียดเพิ่มเติม:</strong> ${history.notes}
+                        </div>
+                    ` : ''}
+                    <div class="family-date">
+                        บันทึกเมื่อ: ${formatThaiDate(new Date(history.recorded_at))} </div>
+                `;
+                
+                container.appendChild(historyItem);
+            });
+        }
+
+        // โหลดประวัติทางการแพทย์
+        async function loadMedicalHistory() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                // แก้ไข API Endpoint: ใช้ /api/patient/medical-history
+                const response = await fetch(`${API_BASE_URL}/patient/medical-history`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load medical history');
+                }
+                
+                const responseData = await response.json();
+                medicalHistory = responseData.medical_history; // Backend ส่งมาใน key 'medical_history'
+                
+                // แสดงประวัติทางการแพทย์
+                renderMedicalHistory();
+                
+            } catch (error) {
+                console.error('Error loading medical history:', error);
+                showApiError('ไม่สามารถโหลดประวัติทางการแพทย์ได้');
+            }
+        }
+
+        // แสดงประวัติทางการแพทย์
+        function renderMedicalHistory() {
+            const container = document.getElementById('medicalHistoryContainer');
+            const emptyState = document.getElementById('medicalHistoryEmpty');
+            
+            if (!medicalHistory || medicalHistory.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            container.innerHTML = '';
+            
+            medicalHistory.forEach(history => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'medical-history-item';
+                
+                // Backend ใช้ condition_type, condition_name, notes, current_status, recorded_by, recorded_at
+                const typeText = getMedicalTypeText(history.condition_type); // Backend ใช้ condition_type
+                
+                historyItem.innerHTML = `
+                    <div class="medical-condition">${history.condition_name}</div> <div class="medical-details">
+                        <strong>ประเภท:</strong> ${typeText}
+                    </div>
+                    ${history.notes ? ` <div class="medical-details">
+                            <strong>รายละเอียด:</strong> ${history.notes}
+                        </div>
+                    ` : ''}
+                    ${history.treatment_received ? ` <div class="medical-details">
+                            <strong>การรักษาที่ได้รับ:</strong> ${history.treatment_received}
+                        </div>
+                    ` : ''}
+                    <div class="medical-date">
+                        บันทึกเมื่อ: ${formatThaiDate(new Date(history.recorded_at))} </div>
+                `;
+                
+                container.appendChild(historyItem);
+            });
+        }
+
+        // แสดง Modal แก้ไขข้อมูลส่วนตัว
+        function showEditPersonalInfoModal() {
+            if (!userData) return;
+            
+            // เติมข้อมูลในฟอร์ม
+            document.getElementById('firstName').value = userData.first_name || '';
+            document.getElementById('lastName').value = userData.last_name || '';
+            
+            // เลือกเพศ
+            document.getElementById('genderMale').checked = userData.gender === 'male';
+            document.getElementById('genderFemale').checked = userData.gender === 'female';
+            document.getElementById('genderOther').checked = userData.gender === 'other';
+            
+            // วันเกิด
+            if (userData.date_of_birth) { // เปลี่ยนจาก birth_date เป็น date_of_birth
+                const birthDate = new Date(userData.date_of_birth);
+                const year = birthDate.getFullYear();
+                const month = String(birthDate.getMonth() + 1).padStart(2, '0');
+                const day = String(birthDate.getDate()).padStart(2, '0');
+                document.getElementById('birthDate').value = `${year}-${month}-${day}`;
+            } else {
+                document.getElementById('birthDate').value = '';
+            }
+            
+            // อีเมลและเบอร์โทรศัพท์ (จาก Users table ที่ join มา)
+            document.getElementById('email').value = userData.email || '';
+            document.getElementById('phone').value = userData.phone || '';
+            
+            // แสดง Modal
+            document.getElementById('editPersonalInfoModal').style.display = 'flex';
+        }
+
+        // แสดง Modal แก้ไขที่อยู่
+        function showEditAddressModal() {
+            if (!userData) return;
+            
+            // เติมข้อมูลในฟอร์ม (backend มีแค่ address, ไม่มี subdistrict, district, province, postal_code แยก)
+            document.getElementById('address').value = userData.address || '';
+            document.getElementById('subdistrict').value = ''; // ไม่มีใน backend current schema
+            document.getElementById('district').value = ''; // ไม่มีใน backend current schema
+            document.getElementById('province').value = ''; // ไม่มีใน backend current schema
+            document.getElementById('postalCode').value = ''; // ไม่มีใน backend current schema
+            
+            // แสดง Modal
+            document.getElementById('editAddressModal').style.display = 'flex';
+        }
+
+        // แสดง Modal แก้ไขข้อมูลผู้ติดต่อฉุกเฉิน
+        function showEditEmergencyContactModal() {
+            if (!userData) return;
+            
+            // เติมข้อมูลในฟอร์ม (ใช้ชื่อ field จาก backend โดยตรง)
+            document.getElementById('emergencyName').value = userData.emergency_contact_name || '';
+            document.getElementById('emergencyRelation').value = userData.emergency_contact_relation || '';
+            document.getElementById('emergencyPhone').value = userData.emergency_contact_phone || '';
+            
+            // แสดง Modal
+            document.getElementById('editEmergencyContactModal').style.display = 'flex';
+        }
+
+        // แสดง Modal เพิ่มประวัติโรคต้อหินในครอบครัว
+        function showAddFamilyHistoryModal() {
+            // รีเซ็ตฟอร์ม
+            document.getElementById('addFamilyHistoryForm').reset();
+            document.getElementById('otherRelationGroup').style.display = 'none';
+            
+            // แสดง Modal
+            document.getElementById('addFamilyHistoryModal').style.display = 'flex';
+        }
+
+        // แสดง Modal เพิ่มประวัติทางการแพทย์
+        function showAddMedicalHistoryModal() {
+            // รีเซ็ตฟอร์ม
+            document.getElementById('addMedicalHistoryForm').reset();
+            
+            // แสดง Modal
+            document.getElementById('addMedicalHistoryModal').style.display = 'flex';
+        }
+
+        // ปิด Modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // อัปเดตข้อมูลส่วนตัว
+        async function updatePersonalInfo() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            // แสดง Loading Spinner
+            const saveButton = document.getElementById('savePersonalInfoBtn');
+            const spinner = document.getElementById('savePersonalInfoSpinner');
+            saveButton.disabled = true;
+            spinner.style.display = 'inline-block';
+            
+            // รับค่าจากฟอร์ม
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            
+            // หาเพศที่เลือก
+            let gender = null;
+            if (document.getElementById('genderMale').checked) gender = 'male';
+            if (document.getElementById('genderFemale').checked) gender = 'female';
+            if (document.getElementById('genderOther').checked) gender = 'other';
+            
+            const birthDate = document.getElementById('birthDate').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            
+            // ตรวจสอบข้อมูล
+            if (!firstName || !lastName || !gender || !birthDate || !phone) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                saveButton.disabled = false;
+                spinner.style.display = 'none';
+                return;
+            }
+            
+            try {
+                // แก้ไข API Endpoint: ใช้ /api/patient/profile และส่งข้อมูลที่ backend ต้องการ
+                const response = await fetch(`${API_BASE_URL}/patient/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        first_name: firstName,
+                        last_name: lastName,
+                        gender: gender,
+                        date_of_birth: birthDate, // Backend ใช้ date_of_birth
+                        email: email,
+                        phone: phone
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to update personal info');
+                }
+                
+                // ไม่ได้ต้องการ updatedUser จาก response เพราะ backend ส่งแค่ success message
+                // เราจะเรียก loadProfile() ใหม่เพื่อโหลดข้อมูลล่าสุดทั้งหมด
+                
+                // ปิด Modal
+                closeModal('editPersonalInfoModal');
+                
+                // โหลดข้อมูลโปรไฟล์ใหม่เพื่ออัปเดต UI ทั้งหมด
+                await loadProfile(); 
+                
+                // แสดงข้อความสำเร็จ
+                alert('อัปเดตข้อมูลส่วนตัวเรียบร้อยแล้ว');
+                
+            } catch (error) {
+                console.error('Error updating personal info:', error);
+                alert(`ไม่สามารถอัปเดตข้อมูลส่วนตัวได้: ${error.message}. กรุณาลองใหม่อีกครั้ง`);
+                
+            } finally {
+                // ซ่อน Loading Spinner
+                saveButton.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+        // อัปเดตที่อยู่
+        async function updateAddress() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            // แสดง Loading Spinner
+            const saveButton = document.getElementById('saveAddressBtn');
+            const spinner = document.getElementById('saveAddressSpinner');
+            saveButton.disabled = true;
+            spinner.style.display = 'inline-block';
+            
+            // รับค่าจากฟอร์ม
+            const address = document.getElementById('address').value;
+            // เนื่องจาก backend ไม่มี subdistrict, district, province, postal_code แยก
+            // หากต้องการเก็บข้อมูลเหล่านี้ ควรพิจารณาเพิ่มใน schema ของ backend
+            // หรือรวมทั้งหมดไว้ใน field 'address' เดียว
+            const subdistrict = document.getElementById('subdistrict').value; // จะไม่ถูกส่งไป backend ถ้าไม่มี field
+            const district = document.getElementById('district').value; // จะไม่ถูกส่งไป backend ถ้าไม่มี field
+            const province = document.getElementById('province').value; // จะไม่ถูกส่งไป backend ถ้าไม่มี field
+            const postalCode = document.getElementById('postalCode').value; // จะไม่ถูกส่งไป backend ถ้าไม่มี field
+            
+            // ตรวจสอบข้อมูล
+            if (!address) { // ตรวจสอบแค่ address หลัก
+                alert('กรุณากรอกข้อมูลที่อยู่');
+                saveButton.disabled = false;
+                spinner.style.display = 'none';
+                return;
+            }
+            
+            try {
+                // แก้ไข API Endpoint: ใช้ /api/patient/profile
+                const response = await fetch(`${API_BASE_URL}/patient/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        address: address,
+                        // ไม่ต้องส่ง subdistrict, district, province, postal_code ถ้า backend ไม่มี field แยก
+                        // ถ้า backend คาดหวังให้รวมอยู่ใน address string ให้รวมไว้ก่อนส่ง
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to update address');
+                }
+                
+                // ปิด Modal
+                closeModal('editAddressModal');
+                
+                // โหลดข้อมูลโปรไฟล์ใหม่เพื่ออัปเดต UI ทั้งหมด
+                await loadProfile();
+                
+                // แสดงข้อความสำเร็จ
+                alert('อัปเดตที่อยู่เรียบร้อยแล้ว');
+                
+            } catch (error) {
+                console.error('Error updating address:', error);
+                alert(`ไม่สามารถอัปเดตที่อยู่ได้: ${error.message}. กรุณาลองใหม่อีกครั้ง`);
+            } finally {
+                // ซ่อน Loading Spinner
+                saveButton.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+        // อัปเดตข้อมูลผู้ติดต่อฉุกเฉิน
+        async function updateEmergencyContact() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            // แสดง Loading Spinner
+            const saveButton = document.getElementById('saveEmergencyContactBtn');
+            const spinner = document.getElementById('saveEmergencyContactSpinner');
+            saveButton.disabled = true;
+            spinner.style.display = 'inline-block';
+            
+            // รับค่าจากฟอร์ม
+            const emergencyName = document.getElementById('emergencyName').value;
+            const emergencyRelation = document.getElementById('emergencyRelation').value;
+            const emergencyPhone = document.getElementById('emergencyPhone').value;
+            
+            // ตรวจสอบข้อมูล
+            if (!emergencyName || !emergencyRelation || !emergencyPhone) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                saveButton.disabled = false;
+                spinner.style.display = 'none';
+                return;
+            }
+            
+            try {
+                // แก้ไข API Endpoint: ใช้ /api/patient/profile
+                const response = await fetch(`${API_BASE_URL}/patient/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        emergency_contact_name: emergencyName,
+                        emergency_contact_relation: emergencyRelation,
+                        emergency_contact_phone: emergencyPhone
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to update emergency contact');
+                }
+                
+                // ปิด Modal
+                closeModal('editEmergencyContactModal');
+                
+                // โหลดข้อมูลโปรไฟล์ใหม่เพื่ออัปเดต UI ทั้งหมด
+                await loadProfile();
+                
+                // แสดงข้อความสำเร็จ
+                alert('อัปเดตข้อมูลผู้ติดต่อฉุกเฉินเรียบร้อยแล้ว');
+                
+            } catch (error) {
+                console.error('Error updating emergency contact:', error);
+                alert(`ไม่สามารถอัปเดตข้อมูลผู้ติดต่อฉุกเฉินได้: ${error.message}. กรุณาลองใหม่อีกครั้ง`);
+            } finally {
+                // ซ่อน Loading Spinner
+                saveButton.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+        // เพิ่มประวัติโรคต้อหินในครอบครัว
+        async function addFamilyHistory() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            // แสดง Loading Spinner
+            const saveButton = document.getElementById('saveFamilyHistoryBtn');
+            const spinner = document.getElementById('saveFamilyHistorySpinner');
+            saveButton.disabled = true;
+            spinner.style.display = 'inline-block';
+            
+            // รับค่าจากฟอร์ม
+            let relation = document.getElementById('familyRelation').value;
+            if (relation === 'other') {
+                relation = document.getElementById('otherRelation').value;
+                if (!relation) {
+                    alert('กรุณาระบุความสัมพันธ์');
+                    saveButton.disabled = false;
+                    spinner.style.display = 'none';
+                    return;
+                }
+            }
+            
+            const glaucomaType = document.getElementById('glaucomaType').value;
+            const diagnosisAge = document.getElementById('diagnosisAge').value || null;
+            const notes = document.getElementById('familyDetails').value || null; // Backend ใช้ notes
+            
+            // ตรวจสอบข้อมูล
+            if (!relation || !glaucomaType) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                saveButton.disabled = false;
+                spinner.style.display = 'none';
+                return;
+            }
+            
+            try {
+                // แก้ไข API Endpoint: ใช้ /api/patient/family-history
+                const response = await fetch(`${API_BASE_URL}/patient/family-history`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        relationship: relation, // Backend ใช้ relationship
+                        glaucoma_type: glaucomaType,
+                        age_at_diagnosis: diagnosisAge,
+                        notes: notes // Backend ใช้ notes
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to add family history');
+                }
+                
+                // ปิด Modal
+                closeModal('addFamilyHistoryModal');
+                
+                // โหลดข้อมูลใหม่
+                loadFamilyHistory(); // เรียก loadFamilyHistory เพื่อให้ข้อมูลบน UI อัปเดต
+                
+                // แสดงข้อความสำเร็จ
+                alert('เพิ่มประวัติโรคต้อหินในครอบครัวเรียบร้อยแล้ว');
+                
+            } catch (error) {
+                console.error('Error adding family history:', error);
+                alert(`ไม่สามารถเพิ่มประวัติโรคต้อหินในครอบครัวได้: ${error.message}. กรุณาลองใหม่อีกครั้ง`);
+            } finally {
+                // ซ่อน Loading Spinner
+                saveButton.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+        // เพิ่มประวัติทางการแพทย์
+        async function addMedicalHistory() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            // แสดง Loading Spinner
+            const saveButton = document.getElementById('saveMedicalHistoryBtn');
+            const spinner = document.getElementById('saveMedicalHistorySpinner');
+            saveButton.disabled = true;
+            spinner.style.display = 'inline-block';
+            
+            // รับค่าจากฟอร์ม
+            const conditionName = document.getElementById('medicalCondition').value; // Backend ใช้ condition_name
+            const conditionType = document.getElementById('medicalType').value; // Backend ใช้ condition_type
+            const diagnosisYear = document.getElementById('diagnosisYear').value || null;
+            const notes = document.getElementById('medicalDetails').value; // Backend ใช้ notes
+            const treatmentReceived = document.getElementById('medicalTreatment').value || null; // Backend ใช้ treatment_received
+            
+            // ตรวจสอบข้อมูล
+            if (!conditionName || !conditionType || !notes) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                saveButton.disabled = false;
+                spinner.style.display = 'none';
+                return;
+            }
+            
+            try {
+                // แก้ไข API Endpoint: ใช้ /api/patient/medical-history
+                const response = await fetch(`${API_BASE_URL}/patient/medical-history`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        patient_id: patientId, // ต้องระบุ patient_id ใน body ด้วย
+                        condition_name: conditionName,
+                        condition_type: conditionType,
+                        diagnosis_year: diagnosisYear,
+                        notes: notes,
+                        treatment_received: treatmentReceived
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to add medical history');
+                }
+                
+                // ปิด Modal
+                closeModal('addMedicalHistoryModal');
+                
+                // โหลดข้อมูลใหม่
+                loadMedicalHistory(); // เรียก loadMedicalHistory เพื่อให้ข้อมูลบน UI อัปเดต
+                
+                // แสดงข้อความสำเร็จ
+                alert('เพิ่มประวัติทางการแพทย์เรียบร้อยแล้ว');
+                
+            } catch (error) {
+                console.error('Error adding medical history:', error);
+                alert(`ไม่สามารถเพิ่มประวัติทางการแพทย์ได้: ${error.message}. กรุณาลองใหม่อีกครั้ง`);
+            } finally {
+                // ซ่อน Loading Spinner
+                saveButton.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+        // แปลงเพศเป็นข้อความภาษาไทย
+        function getGenderText(gender) {
+            switch (gender) {
+                case 'male': return 'ชาย';
+                case 'female': return 'หญิง';
+                case 'other': return 'อื่นๆ';
+                default: return '-';
+            }
+        }
+
+        // แปลงความสัมพันธ์เป็นข้อความภาษาไทย
+        function getRelationText(relation) {
+            switch (relation) {
+                case 'father': return 'บิดา';
+                case 'mother': return 'มารดา';
+                case 'sibling': return 'พี่น้อง';
+                case 'child': return 'บุตร';
+                case 'grandparent': return 'ปู่/ย่า/ตา/ยาย';
+                default: return relation; // สำหรับความสัมพันธ์อื่นๆ
+            }
+        }
+
+        // แปลงชนิดของโรคต้อหินเป็นข้อความภาษาไทย
+        function getGlaucomaTypeText(type) {
+            switch (type) {
+                case 'open-angle': return 'ต้อหินมุมเปิด (Open-angle Glaucoma)';
+                case 'angle-closure': return 'ต้อหินมุมปิด (Angle-closure Glaucoma)';
+                case 'normal-tension': return 'ต้อหินความดันปกติ (Normal-tension Glaucoma)';
+                case 'congenital': return 'ต้อหินแต่กำเนิด (Congenital Glaucoma)';
+                case 'secondary': return 'ต้อหินทุติยภูมิ (Secondary Glaucoma)';
+                case 'unknown': return 'ไม่ทราบชนิด';
+                default: return '-';
+            }
+        }
+
+        // แปลงประเภทประวัติทางการแพทย์เป็นข้อความภาษาไทย
+        function getMedicalTypeText(type) {
+            switch (type) {
+                case 'chronic': return 'โรคประจำตัว';
+                case 'allergy': return 'อาการแพ้';
+                case 'surgery': return 'การผ่าตัด';
+                case 'eye-injury': return 'การบาดเจ็บที่ตา';
+                case 'other': return 'อื่นๆ';
+                default: return '-';
+            }
+        }
+
+        // แปลงวันที่เป็นรูปแบบไทย
+        function formatThaiDate(date) {
+            if (!date) return '-';
+            
+            const day = date.getDate();
+            const monthNames = [
+                'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+                'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+            ];
+            const month = monthNames[date.getMonth()];
+            const year = date.getFullYear() + 543; // แปลงเป็น พ.ศ.
+            
+            return `${day} ${month} ${year}`;
+        }
+
+        // คำนวณอายุจากวันเกิด
+        function calculateAge(birthDate) {
+            if (!birthDate) return '-';
+            
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            
+            return `${age} ปี`;
+        }
+
+        // Logout function
+        function logout() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            fetch(`${API_BASE_URL}/auth/logout`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(() => {
+                localStorage.removeItem('gtms_token');
+                localStorage.removeItem('gtms_user');
+                window.location.href = 'index.html';
+            })
+            .catch(error => {
+                console.error('Logout error:', error);
+                // Force logout even if API fails
+                localStorage.removeItem('gtms_token');
+                localStorage.removeItem('gtms_user');
+                window.location.href = 'index.html';
+            });
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // ตรวจสอบการเข้าสู่ระบบ
+            if (!checkAuth()) {
+                return;
+            }
+            
+            // โหลดข้อมูลโปรไฟล์
+            loadProfile();
+            
+            // Event listener สำหรับความสัมพันธ์อื่นๆ
+            document.getElementById('familyRelation').addEventListener('change', function() {
+                const otherRelationGroup = document.getElementById('otherRelationGroup');
+                if (this.value === 'other') {
+                    otherRelationGroup.style.display = 'block';
+                } else {
+                    otherRelationGroup.style.display = 'none';
+                }
+            });
+            
+            // ตรวจสอบการคลิกนอก dropdown เพื่อปิด
+            document.addEventListener('click', function(event) {
+                const userMenu = document.getElementById('userMenu');
+                const userDropdown = document.querySelector('.user-dropdown');
+                
+                if (userMenu && userMenu.classList.contains('show') && userDropdown && !userDropdown.contains(event.target)) {
+                    userMenu.classList.remove('show');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

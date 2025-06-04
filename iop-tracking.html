@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ติดตามค่าความดันลูกตา - GTMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <style>
+        :root {
+            --primary: #00A8A8;
+            --primary-dark: #007878;
+            --primary-light: #E0F2F1;
+            --secondary: #00CECE;
+            --dark: #324047;
+            --gray: #6B7280;
+            --light-gray: #F3F4F6;
+            --white: #FFFFFF;
+            --error: #EF4444;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --info: #3B82F6;
+            --border: #E5E7EB;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background-color: #F9FAFB;
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        /* Layout */
+        .layout {
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background-color: var(--white);
+            height: 100vh;
+            position: fixed;
+            box-shadow: var(--shadow);
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 20;
+            background: var(--primary);
+            color: var(--white);
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        .logo-container {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background-color: var(--primary-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .logo-subtitle {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .menu {
+            padding: 20px 0;
+            overflow-y: auto;
+            max-height: calc(100vh - 91px);
+        }
+
+        .menu-label {
+            padding: 0 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--gray);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        /* Header */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .notifications-btn {
+            background: var(--white);
+            border: 1px solid var(--border);
+            color: var(--gray);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .notifications-indicator {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            background-color: var(--error);
+            border-radius: 50%;
+            border: 2px solid var(--white);
+            display: none;
+        }
+
+        .user-dropdown {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 6px 8px 6px 6px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: var(--primary-light);
+            border-radius: 50%;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card-action {
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* IOP Chart */
+        .chart-container {
+            width: 100%;
+            height: 400px; /* ปรับความสูงตามต้องการ */
+            position: relative;
+        }
+
+        .loading-spinner-container { /* เปลี่ยนชื่อ class นี้ */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 200px; /* ให้มีขนาดขั้นต่ำ */
+        }
+
+        .loading-spinner {
+            /* position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); */ /* เอาออกถ้าใช้ flex */
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 168, 168, 0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); } /* ปรับ transform ถ้าไม่ได้อยู่ตรงกลาง */
+            100% { transform: rotate(360deg); }
+        }
+
+        .chart-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* IOP Table */
+        .iop-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .iop-table th,
+        .iop-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .iop-table th {
+            background-color: var(--light-gray);
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .iop-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .iop-table tr:hover {
+            background-color: var(--primary-light);
+        }
+
+        .table-container {
+            max-height: 400px; /* ปรับความสูงตามต้องการ */
+            overflow-y: auto;
+        }
+
+        /* Target Value */
+        .target-value {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px;
+            border-radius: 8px;
+            background-color: rgba(16, 185, 129, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .target-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--success);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+        }
+
+        .target-text {
+            font-size: 14px;
+            color: var(--dark);
+        }
+
+        .target-value strong {
+            color: var(--success);
+        }
+
+        /* Filter Controls */
+        .filter-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filter-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        /* Status Message */
+        .status-message {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            display: none; /* ซ่อนไว้ตอนแรก */
+        }
+
+        .status-message.success {
+            background-color: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .status-message.error {
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--error);
+        }
+
+        .status-icon {
+            font-size: 18px;
+        }
+
+        .status-text {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .status-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: currentColor;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--gray);
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* User Menu Dropdown */
+        .user-menu {
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+            width: 200px;
+            z-index: 100;
+            display: none;
+        }
+
+        .user-menu.show {
+            display: block;
+        }
+
+        .user-menu-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-menu-item:hover {
+            background-color: var(--light-gray);
+        }
+
+        .user-menu-logout {
+            color: var(--error);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding-top: 60px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .filter-controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .filter-control {
+                width: 100%;
+            }
+
+            .filter-select {
+                flex: 1;
+            }
+
+            .tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+    
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="logo-container">
+                <div class="logo">G</div>
+                <div class="logo-text">
+                    <div class="logo-title">GTMS</div>
+                    <div class="logo-subtitle">ระบบติดตามการรักษาโรคต้อหิน</div>
+                </div>
+            </div>
+            
+            <nav class="menu">
+                <p class="menu-label">หน้าหลัก</p>
+                <a href="dashboard.html" class="menu-item">
+                    <div class="menu-icon">📊</div>
+                    แดชบอร์ด
+                </a>
+                <a href="appointments.html" class="menu-item">
+                    <div class="menu-icon">📅</div>
+                    การนัดหมาย
+                </a>
+                
+                <p class="menu-label">การติดตามการรักษา</p>
+                <a href="iop-tracking.html" class="menu-item active"> <div class="menu-icon">👁️</div>
+                    ค่าความดันลูกตา
+                </a>
+                <a href="medications.html" class="menu-item">
+                    <div class="menu-icon">💊</div>
+                    ยาและการรักษา
+                </a>
+                <a href="eye-tests.html" class="menu-item">
+                    <div class="menu-icon">📝</div>
+                    ผลการตรวจวัด
+                </a>
+                
+                <p class="menu-label">อื่นๆ</p>
+                <a href="profile.html" class="menu-item">
+                    <div class="menu-icon">👤</div>
+                    ข้อมูลส่วนตัว
+                </a>
+                <a href="notifications.html" class="menu-item">
+                    <div class="menu-icon">🔔</div>
+                    การแจ้งเตือน
+                </a>
+                <a href="documents.html" class="menu-item">
+                    <div class="menu-icon">📄</div>
+                    เอกสารทางการแพทย์
+                </a>
+                <a href="settings.html" class="menu-item">
+                    <div class="menu-icon">⚙️</div>
+                    ตั้งค่า
+                </a>
+                <a href="#" class="menu-item" onclick="logout()">
+                    <div class="menu-icon">🚪</div>
+                    ออกจากระบบ
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-header">
+                <h1 class="page-title">ติดตามค่าความดันลูกตา (IOP)</h1>
+                
+                <div class="user-info">
+                    <button class="notifications-btn" onclick="location.href='notifications.html'">
+                        🔔
+                        <span class="notifications-indicator" id="notificationsIndicator"></span>
+                    </button>
+                    
+                    <div class="user-dropdown" onclick="toggleUserMenu()">
+                        <div class="user-avatar" id="userAvatar">-</div>
+                        <span class="user-name" id="userName">กำลังโหลด...</span>
+                        <span>▼</span>
+                    </div>
+
+                    <div class="user-menu" id="userMenu">
+                        <a href="profile.html" class="user-menu-item">
+                            <div class="menu-icon">👤</div> โปรไฟล์
+                        </a>
+                        <a href="settings.html" class="user-menu-item">
+                            <div class="menu-icon">⚙️</div> ตั้งค่า
+                        </a>
+                        <a href="#" class="user-menu-item user-menu-logout" onclick="logout()">
+                            <div class="menu-icon">🚪</div> ออกจากระบบ
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-message success" id="successMessage">
+                <div class="status-icon">✅</div>
+                <div class="status-text" id="successText"></div>
+                <button class="status-close" onclick="hideStatusMessage('success')">×</button>
+            </div>
+            <div class="status-message error" id="errorMessage">
+                <div class="status-icon">❌</div>
+                <div class="status-text" id="errorText"></div>
+                <button class="status-close" onclick="hideStatusMessage('error')">×</button>
+            </div>
+
+            <div class="target-value" id="targetContainer" style="display: none;">
+                <div class="target-icon">🎯</div>
+                <div class="target-text">
+                    ค่าความดันลูกตาเป้าหมายตามคำแนะนำของแพทย์: <strong id="targetIOPValue">-</strong> mmHg
+                </div>
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab(event, 'graphTab')">กราฟแนวโน้ม</div>
+                <div class="tab" onclick="switchTab(event, 'recordsTab')">ประวัติการวัด</div>
+                </div>
+
+            <div class="tab-content active" id="graphTab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">แนวโน้มความดันลูกตา</h2>
+                        <div class="filter-controls">
+                            <div class="filter-control">
+                                <span class="filter-label">แสดง:</span>
+                                <select class="filter-select" id="graphPeriodSelect" onchange="loadIOPData()">
+                                    <option value="30">1 เดือนล่าสุด</option>
+                                    <option value="90" selected>3 เดือนล่าสุด</option>
+                                    <option value="180">6 เดือนล่าสุด</option>
+                                    <option value="365">1 ปีล่าสุด</option>
+                                    </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" id="iopChartContainer">
+                            <div class="loading-spinner-container" id="iopChartLoading" style="display: none;"> <div class="loading-spinner"></div>
+                            </div>
+                            <canvas id="iopChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="recordsTab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">ประวัติการวัดความดันลูกตา</h2>
+                        <div class="filter-controls">
+                            <div class="filter-control">
+                                <span class="filter-label">แสดง:</span>
+                                <select class="filter-select" id="tablePeriodSelect" onchange="loadIOPData()">
+                                    <option value="30">1 เดือนล่าสุด</option>
+                                    <option value="90" selected>3 เดือนล่าสุด</option>
+                                    <option value="180">6 เดือนล่าสุด</option>
+                                    <option value="365">1 ปีล่าสุด</option>
+                                    </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="iop-table" id="iopTable">
+                                <thead>
+                                    <tr>
+                                        <th>วันที่วัด</th>
+                                        <th>เวลา</th>
+                                        <th>ตาซ้าย (mmHg)</th>
+                                        <th>ตาขวา (mmHg)</th>
+                                        <th>วัดที่</th>
+                                        <th>วิธีวัด</th>
+                                        <th>หมายเหตุ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="iopTableBody">
+                                    </tbody>
+                            </table>
+                            <div class="loading-spinner-container" id="iopTableLoading" style="display: none;"> <div class="loading-spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            </main>
+    </div>
+
+   <script>
+    // Configuration
+    const API_BASE_URL = 'http://localhost:5001/api'; // <<--- ตรวจสอบและแก้ไขให้ตรงกับ Backend ของคุณ
+    let patientData = null;
+    let iopChartInstance = null;
+
+    // --- START: ฟังก์ชันพื้นฐาน ---
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.toggle('open');
+    }
+
+    function toggleUserMenu() {
+        const userMenu = document.getElementById('userMenu');
+        if (userMenu) userMenu.classList.toggle('show');
+    }
+
+    document.addEventListener('click', function(event) {
+        const userDropdown = document.querySelector('.user-dropdown');
+        const userMenu = document.getElementById('userMenu');
+        if (userDropdown && !userDropdown.contains(event.target) && userMenu && userMenu.classList.contains('show')) {
+            userMenu.classList.remove('show');
+        }
+    });
+
+    function getAuthToken() {
+        const token = localStorage.getItem('gtms_token');
+        if (!token) {
+            console.warn('No token found, redirecting to login.');
+            window.location.href = 'index.html'; // หรือ login.html ตามชื่อไฟล์
+            return null;
+        }
+        return token;
+    }
+
+    async function logout() {
+        const token = getAuthToken();
+        try {
+            if (token) {
+                await fetch(`${API_BASE_URL}/auth/logout`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                });
+            }
+        } catch (error) { console.error('Logout API error:', error); }
+        finally {
+            localStorage.clear();
+            window.location.href = 'index.html'; // หรือ login.html
+        }
+    }
+
+    function updateUserInfoUI(user) {
+        const userNameEl = document.getElementById('userName');
+        const userAvatarEl = document.getElementById('userAvatar');
+        const notificationsIndicatorEl = document.getElementById('notificationsIndicator');
+
+        if (user && userNameEl && userAvatarEl) {
+            const displayName = (user.firstName && user.lastName) ? `${user.firstName} ${user.lastName}` : user.username || 'ผู้ใช้';
+            userNameEl.textContent = displayName;
+            userAvatarEl.textContent = displayName.charAt(0).toUpperCase();
+        }
+        // Update notification indicator (จะถูกเรียกอีกครั้งเมื่อโหลด notifications)
+        if (notificationsIndicatorEl && user && user.unread_notifications > 0) {
+             notificationsIndicatorEl.style.display = 'block';
+        } else if (notificationsIndicatorEl) {
+            notificationsIndicatorEl.style.display = 'none';
+        }
+    }
+
+    function showStatusMessage(type, message) {
+        const messageElement = document.getElementById(`${type}Message`);
+        const textElement = document.getElementById(`${type}Text`);
+        if (messageElement && textElement) {
+            textElement.textContent = message;
+            messageElement.style.display = 'flex';
+            setTimeout(() => { if (messageElement) messageElement.style.display = 'none'; }, 5000);
+        } else {
+            console.warn(`Status message elements for type '${type}' not found.`);
+        }
+    }
+
+    function hideStatusMessage(type) {
+        const messageElement = document.getElementById(`${type}Message`);
+        if (messageElement) messageElement.style.display = 'none';
+    }
+
+    function showApiError(message, retryFunction = null) {
+        const apiErrorDiv = document.getElementById('apiError');
+        const apiErrorMessageEl = document.getElementById('apiErrorMessage');
+        const retryButton = apiErrorDiv ? apiErrorDiv.querySelector('.api-error-retry') : null;
+
+        if (apiErrorMessageEl) apiErrorMessageEl.textContent = message;
+        if (apiErrorDiv) apiErrorDiv.style.display = 'flex';
+
+        if (retryFunction && retryButton) {
+            retryButton.onclick = retryFunction;
+            retryButton.style.display = 'inline-block';
+        } else if (retryButton) {
+            retryButton.style.display = 'none';
+        }
+    }
+
+    function hideApiError() {
+        const apiErrorDiv = document.getElementById('apiError');
+        if (apiErrorDiv) apiErrorDiv.style.display = 'none';
+    }
+    // --- END: ฟังก์ชันพื้นฐาน ---
+
+    async function loadUserProfileAndInit() {
+        const token = getAuthToken();
+        if (!token) return;
+
+        hideApiError(); // ซ่อน error เก่า (ถ้ามี) ก่อนเริ่มโหลด
+        const storedUser = localStorage.getItem('gtms_user');
+        if (storedUser) {
+            try {
+                patientData = JSON.parse(storedUser);
+                if (patientData && patientData.id) {
+                    console.log('User data loaded from localStorage:', patientData);
+                    updateUserInfoUI(patientData);
+                    await loadIOPData(); // โหลดข้อมูล IOP ทันที
+                    return;
+                }
+            } catch (e) { console.error('Error parsing stored user data:', e); localStorage.removeItem('gtms_user'); }
+        }
+
+        console.log('Fetching user profile from API...');
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) {
+                if (response.status === 401) { await logout(); return; }
+                throw new Error(`Failed to load user profile: ${response.statusText} (Status: ${response.status})`);
+            }
+            const apiUserData = await response.json();
+            if (apiUserData && apiUserData.user) {
+                patientData = apiUserData.user;
+                localStorage.setItem('gtms_user', JSON.stringify(patientData));
+                console.log('User data fetched from API:', patientData);
+                updateUserInfoUI(patientData);
+                await loadIOPData(); // โหลดข้อมูล IOP หลังจากได้ข้อมูลผู้ใช้
+            } else {
+                throw new Error('User data not found in API response structure.');
+            }
+        } catch (error) {
+            console.error('Error loading user profile from API:', error);
+            showApiError(`ไม่สามารถโหลดข้อมูลผู้ใช้ได้: ${error.message}`, loadUserProfileAndInit);
+        }
+    }
+
+    function switchTab(event, tabId) {
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+        let clickedTabButton = event ? event.currentTarget : document.querySelector(`.tab[onclick*="'${tabId}'"]`);
+        if (clickedTabButton) {
+            clickedTabButton.classList.add('active');
+        }
+        
+        const tabContent = document.getElementById(tabId);
+        if (tabContent) {
+            tabContent.classList.add('active');
+        } else {
+            console.error(`Tab content with ID '${tabId}' not found.`);
+        }
+
+        if (tabId === 'graphTab' || tabId === 'recordsTab') {
+            if (patientData && patientData.id) { // ตรวจสอบว่ามี patientData ก่อนโหลด
+                 loadIOPData();
+            } else {
+                console.warn("Patient data not yet available for loading IOP data in tab switch.");
+                // อาจจะแสดงข้อความ "กำลังโหลดข้อมูลผู้ใช้..." หรือรอให้ loadUserProfileAndInit ทำงานเสร็จ
+            }
+        }
+    }
+
+    function formatThaiDate(dateString) {
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString);
+            // เพิ่มการตรวจสอบว่าเป็นวันที่ถูกต้องหรือไม่
+            if (isNaN(date.getTime())) return dateString; // คืนค่าเดิมถ้าแปลงไม่ได้
+            return date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+        } catch (e) { return dateString; }
+    }
+
+    function formatTime(timeString) {
+        if (!timeString || !timeString.includes(':')) return '-';
+        const parts = timeString.split(':');
+        const hours = parts[0];
+        const minutes = parts[1];
+        // const seconds = parts[2]; // Optional: if seconds are present
+        return `${hours}:${minutes} น.`;
+    }
+
+    function formatIOPValue(value) {
+        if (typeof value === 'number' && !isNaN(value)) {
+            return value.toFixed(1);
+        }
+        return '-';
+    }
+    
+    async function loadIOPData() {
+        const token = getAuthToken();
+        if (!token || !patientData || !patientData.id) {
+            console.warn("loadIOPData skipped: Token or Patient ID missing.");
+            // ไม่ควรเรียก loadUserProfileAndInit ซ้ำจากที่นี่ เพราะอาจเกิด loop
+            // ถ้า loadUserProfileAndInit ล้มเหลว จะมี retry button ให้ผู้ใช้กดเอง
+            return;
+        }
+
+        const activeTabEl = document.querySelector('.tab.active');
+        let periodSelectId = 'graphPeriodSelect'; 
+        if (activeTabEl) {
+            const onclickAttr = activeTabEl.getAttribute('onclick');
+            if (onclickAttr && onclickAttr.includes('recordsTab')) {
+                periodSelectId = 'tablePeriodSelect';
+            }
+        }
+        
+        const periodSelect = document.getElementById(periodSelectId);
+        if (!periodSelect) {
+            console.error(`Error: Cannot find period select element with ID: ${periodSelectId}`);
+            showStatusMessage('error', `เกิดข้อผิดพลาดในการตั้งค่า: ไม่พบตัวเลือกช่วงเวลา (${periodSelectId})`);
+            return;
+        }
+        const periodDaysValue = periodSelect.value; 
+
+        console.log(`Fetching IOP data for period: ${periodDaysValue} days from select ID: ${periodSelectId}`);
+
+        const iopChartLoadingEl = document.getElementById('iopChartLoading');
+        const iopTableLoadingEl = document.getElementById('iopTableLoading');
+        const iopTableBodyEl = document.getElementById('iopTableBody');
+        const chartContainer = document.getElementById('iopChartContainer');
+
+
+        if (iopChartLoadingEl) iopChartLoadingEl.style.display = 'flex';
+        if (iopTableLoadingEl) iopTableLoadingEl.style.display = 'flex';
+        if (iopChartInstance) { iopChartInstance.destroy(); iopChartInstance = null; }
+        if (iopTableBodyEl) iopTableBodyEl.innerHTML = '<tr><td colspan="7" style="text-align: center;">กำลังโหลดข้อมูล...</td></tr>';
+        // เคลียร์ placeholder ของกราฟก่อนโหลด
+        if(chartContainer) {
+            const placeholder = chartContainer.querySelector('.chart-placeholder');
+            if(placeholder) placeholder.remove();
+            const canvas = document.getElementById('iopChart');
+            if(canvas) canvas.style.display = 'none'; // ซ่อน canvas ขณะโหลด
+        }
+
+
+        try {
+            const apiUrl = `${API_BASE_URL}/patient/iop-analytics?period=${periodDaysValue}`;
+            console.log(`Constructed API URL for IOP Data: ${apiUrl}`);
+
+            const response = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+
+            if (!response.ok) {
+                const errorText = await response.text().catch(() => "ไม่สามารถอ่านรายละเอียดข้อผิดพลาดได้");
+                throw new Error(`ไม่สามารถโหลดข้อมูล IOP (${response.status}): ${response.statusText}. ${errorText}`);
+            }
+            const analyticsData = await response.json();
+            console.log("Received IOP Analytics Data:", analyticsData);
+
+            renderIOPChart(analyticsData.daily_data || []);
+            renderIOPTable(analyticsData.daily_data || []); // ใช้ daily_data แสดงในตาราง
+
+            const targetIOPEl = document.getElementById('targetIOPValue');
+            const targetContainerEl = document.getElementById('targetContainer');
+            // Backend /patient/iop-analytics อาจจะส่ง target_iop มากับ analyticsData
+            // หรืออาจจะต้องดึงจาก patientData ถ้ามี
+            const targetIOP = analyticsData?.target_iop || patientData?.target_iop_left || patientData?.target_iop_right || null; 
+            if (targetIOP !== null && targetIOPEl && targetContainerEl) {
+                targetIOPEl.textContent = targetIOP;
+                targetContainerEl.style.display = 'flex';
+            } else if (targetContainerEl) {
+                targetContainerEl.style.display = 'none';
+            }
+
+        } catch (error) {
+            console.error('Error in loadIOPData:', error);
+            showStatusMessage('error', error.message || 'เกิดข้อผิดพลาดในการโหลดข้อมูล IOP');
+            if(chartContainer) chartContainer.innerHTML = '<div class="chart-placeholder">ไม่สามารถโหลดกราฟได้</div>';
+            if(iopTableBodyEl) iopTableBodyEl.innerHTML = '<tr><td colspan="7" style="text-align: center;">ไม่สามารถโหลดข้อมูลตารางได้</td></tr>';
+        } finally {
+            if (iopChartLoadingEl) iopChartLoadingEl.style.display = 'none';
+            if (iopTableLoadingEl) iopTableLoadingEl.style.display = 'none';
+        }
+    }
+
+    function renderIOPChart(data) {
+        const chartContainer = document.getElementById('iopChartContainer');
+        const canvas = document.getElementById('iopChart');
+        const chartLoadingEl = document.getElementById('iopChartLoading');
+
+        if (iopChartInstance) {
+            iopChartInstance.destroy();
+            iopChartInstance = null;
+        }
+        
+        if (!canvas) {
+            console.error("Canvas element 'iopChart' not found in renderIOPChart.");
+            if (chartContainer) chartContainer.innerHTML = '<div class="chart-placeholder">ข้อผิดพลาด: ไม่พบพื้นที่วาดกราฟ</div>';
+            if (chartLoadingEl) chartLoadingEl.style.display = 'none';
+            return;
+        }
+        
+        if (chartContainer) {
+            const placeholder = chartContainer.querySelector('.chart-placeholder');
+            if(placeholder) placeholder.remove();
+        }
+        canvas.style.display = 'block';
+
+        if (!data || data.length === 0) {
+            if (chartContainer) chartContainer.innerHTML = '<div class="chart-placeholder">ไม่มีข้อมูลความดันลูกตาในช่วงเวลาที่เลือกสำหรับแสดงกราฟ</div>';
+             if (chartLoadingEl) chartLoadingEl.style.display = 'none'; // ซ่อน loading ถ้าไม่มีข้อมูล
+            return;
+        }
+        
+        const chartLabels = data.map(item => new Date(item.measurement_date)); 
+        const leftEyeData = data.map(item => ({ x: new Date(item.measurement_date), y: (typeof item.avg_left_iop === 'number' ? item.avg_left_iop : null) }));
+        const rightEyeData = data.map(item => ({ x: new Date(item.measurement_date), y: (typeof item.avg_right_iop === 'number' ? item.avg_right_iop : null) }));
+
+        const ctx = canvas.getContext('2d');
+        iopChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: { datasets: [
+                    { label: 'ตาซ้าย (เฉลี่ย)', data: leftEyeData, borderColor: '#3B82F6', backgroundColor: 'rgba(59, 130, 246, 0.1)', tension: 0.1, pointRadius: 3, fill: true,},
+                    { label: 'ตาขวา (เฉลี่ย)', data: rightEyeData, borderColor: '#F59E0B', backgroundColor: 'rgba(245, 158, 11, 0.1)', tension: 0.1, pointRadius: 3, fill: true,}
+            ]},
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false }, annotation: { annotations: {} }
+                },
+                scales: {
+                    y: { beginAtZero: false, suggestedMin: 5, suggestedMax: 30, title: { display: true, text: 'ความดันลูกตา (mmHg)' }},
+                    x: { type: 'time', time: { unit: 'day', tooltipFormat: 'dd MMM yyyy', displayFormats: { day: 'dd MMM' }}, title: { display: true, text: 'วันที่วัด' }}
+                }
+            }
+        });
+        
+        const targetIOPEl = document.getElementById('targetIOPValue');
+        const targetIOPValue = targetIOPEl ? parseFloat(targetIOPEl.textContent) : null;
+
+        if (!isNaN(targetIOPValue) && iopChartInstance.options.plugins.annotation) {
+            iopChartInstance.options.plugins.annotation.annotations.targetLine = {
+                type: 'line', yMin: targetIOPValue, yMax: targetIOPValue,
+                borderColor: 'rgb(16, 185, 129)', borderWidth: 2, borderDash: [6, 6],
+                label: { content: `เป้าหมาย: ${targetIOPValue} mmHg`, enabled: true, position: 'end', backgroundColor: 'rgba(16, 185, 129, 0.8)' }
+            };
+            iopChartInstance.update();
+        }
+        if (chartLoadingEl) chartLoadingEl.style.display = 'none';
+    }
+
+    function renderIOPTable(data) {
+        const tableBody = document.getElementById('iopTableBody');
+        if (!tableBody) { console.error("Element 'iopTableBody' not found."); return; }
+        tableBody.innerHTML = ''; 
+
+        if (!data || data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">ไม่มีข้อมูลความดันลูกตาในช่วงเวลาที่เลือก</td></tr>';
+            return;
+        }
+        data.sort((a, b) => new Date(b.measurement_date) - new Date(a.measurement_date)); 
+
+        data.forEach(item => {
+            const row = tableBody.insertRow();
+            const leftIopDisplay = formatIOPValue(item.avg_left_iop);
+            const rightIopDisplay = formatIOPValue(item.avg_right_iop);
+            const timeDisplay = item.measurement_time ? formatTime(item.measurement_time) : (item.measurement_count > 1 ? `เฉลี่ย ${item.measurement_count} ครั้ง/วัน` : '-');
+            const measuredAtDisplay = item.measured_at_hospital !== undefined ? (item.measured_at_hospital ? 'โรงพยาบาล/คลินิก' : 'บ้าน') : '-';
+            const methodDisplay = item.measurement_method || '-';
+            const notesDisplay = item.notes || (item.measurement_count > 1 ? `ข้อมูลสรุปรายวันจาก ${item.measurement_count} การวัด` : '-');
+
+            row.innerHTML = `
+                <td>${formatThaiDate(item.measurement_date)}</td>
+                <td>${timeDisplay}</td>
+                <td>${leftIopDisplay}</td>
+                <td>${rightIopDisplay}</td>
+                <td>${measuredAtDisplay}</td>
+                <td>${methodDisplay}</td>
+                <td>${notesDisplay}</td>
+            `;
+        });
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', () => {
+        if(getAuthToken()){
+            loadUserProfileAndInit(); 
+        }
+        // Set default active tab and trigger data load for it.
+        const defaultTabButton = document.querySelector('.tab[onclick*="graphTab"]'); // Default to graphTab
+        if(defaultTabButton){
+            switchTab({ currentTarget: defaultTabButton }, 'graphTab');
+        }
+    });
+</script>
+</body>
+</html>
